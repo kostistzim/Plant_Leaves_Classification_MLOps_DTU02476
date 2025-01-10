@@ -22,4 +22,4 @@ As for the dataset, we are going to use [Plant Leaves for Image Classification](
 
 ## Models
 
-We are going to use CNN based model(s), more specifically [timm/efficientnet_b1.ra4_e3600_r240_in1k - Hugging Face](https://huggingface.co/timm/efficientnet_b1.ra4_e3600_r240_in1k).The idea is to use the CNN body of this pretrained model and blend it with our own fully connected classification layer(s). This will allow us to atleast partialy utilize the pre-trained weights of the model, while the custom fully connected layer handles the specific needs of our problem.
+We are going to use CNN based model(s), more specifically [timm/efficientnet_b1.ra4_e3600_r240_in1k - Hugging Face](https://huggingface.co/timm/efficientnet_b1.ra4_e3600_r240_in1k).The idea is to use the CNN body of this pretrained model and blend it with our own fully connected classification layer(s). This will allow us to atleast partially utilize the pre-trained weights of the model, while the custom fully connected layer handles the specific needs of our problem.
