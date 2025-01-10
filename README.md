@@ -18,7 +18,7 @@ We will be using PyTorch, with the addition of other third party libraries. PyTo
 
 ## Data
 
-As for the dataset, we are going to use [Plant Leaves for Image Classification](https://www.kaggle.com/datasets/csafrit2/plant-leaves-for-image-classification) from Kaggle.The dataset contains 4502 images of healthy and unhealthy plant leaves with an approximate size of 7.3GBs. We will start by scaling down the images from (6000*4000) to the model's proper input dimensions. In case we notice that the size of the dataset requires computational expensive training, we will utilize a subset of the initial data.
+As for the dataset, we are going to use [Plant Leaves for Image Classification](https://www.kaggle.com/datasets/csafrit2/plant-leaves-for-image-classification) from Kaggle.The dataset contains 4502 images of healthy and unhealthy plant leaves with an approximate size of 7.3GBs. We will start by scaling down the images from (6000*4000) to the model's proper input dimensions. In case we notice that the size of the dataset requires computational expensive training, we will utilize a subset of the initial data. On the other hand, in case that the dataset is small for the task, we will augment it by utilizing frameworks such as torchvision or TissueImageAnalytics/tiatoolbox.
 
 ## Models
 
