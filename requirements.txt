@@ -1,3 +1,5 @@
 invoke==2.2.0
 torch==2.5.1
 typer==0.15.1
+kagglehub==0.3.6
+tqdm==4.67.1

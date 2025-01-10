@@ -2,6 +2,11 @@ from pathlib import Path
 
 import typer
 from torch.utils.data import Dataset
+import kagglehub
+
+
+# Download latest version
+
 
 
 class MyDataset(Dataset):
@@ -24,6 +29,13 @@ def preprocess(raw_data_path: Path, output_folder: Path) -> None:
     dataset = MyDataset(raw_data_path)
     dataset.preprocess(output_folder)
 
+def load_data(raw_data_path: str = "../../data/raw/tmp.zip") -> None:
+    # kagglehub.login()
+    # kaggle_path = kagglehub.dataset_download("arifmia/heart-attack-risk-dataset", path=raw_data_path)
+
+    # print("Path to dataset files:", kaggle_path)
+    return None
 
 if __name__ == "__main__":
-    typer.run(preprocess)
+    # typer.run(preprocess)
+    typer.run(load_data)

@@ -1,5 +1,8 @@
 docs/site/
 
+# Ignore data directory
+data/
+
 # test cache
 manual_test/
 
