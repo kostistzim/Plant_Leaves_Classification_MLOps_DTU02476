@@ -1,5 +1,6 @@
 # commands
 invoke==2.2.0
+pipreqs==0.4.13
 
 # pre-commit
 pre-commit==3.5.0
