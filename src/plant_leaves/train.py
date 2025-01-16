@@ -1,18 +1,25 @@
 from pathlib import Path
 from typing import Dict
 
+import hydra
 import matplotlib.pyplot as plt
 import torch
 from model import PlantClassifier
+from omegaconf.dictconfig import DictConfig
 from torch.utils.data import DataLoader
 
-from src.plant_leaves.data import load_processed_data
+from plant_leaves.data import load_processed_data
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
-DATA_PATH = Path("../../data/processed/")
+DATA_PATH = Path("data/processed/")
 
 
-def train(batch_size: int = 64, epochs: int = 10, lr: float = 1e-4) -> None:
+@hydra.main(
+    config_path="../../configs",
+    config_name="default_config.yaml",
+    version_base=None,
+)
+def train(cfg: DictConfig) -> None:
     """
     Takes the CNN model and performs the training process
 
@@ -22,17 +29,18 @@ def train(batch_size: int = 64, epochs: int = 10, lr: float = 1e-4) -> None:
                         lr (float): learning rate of optimizer
 
     """
+    params = cfg.experiment
     model = PlantClassifier().to(DEVICE)
     train_set, _, _ = load_processed_data(DATA_PATH)
 
-    train_dataloader = DataLoader(dataset=train_set, batch_size=batch_size)
+    train_dataloader = DataLoader(dataset=train_set, batch_size=params.batch_size)
 
     loss_fn = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=params.lr)
 
     statistics: Dict[str, list[float]] = {"train_loss": [], "train_accuracy": []}
 
-    for epoch in range(epochs):
+    for epoch in range(params.epochs):
         model.train()
         for i, (img, target) in enumerate(train_dataloader):
             img, target = img.to(DEVICE), target.to(DEVICE)
@@ -46,8 +54,8 @@ def train(batch_size: int = 64, epochs: int = 10, lr: float = 1e-4) -> None:
             accuracy = (y_pred.argmax(dim=1) == target).float().mean().item()
             statistics["train_accuracy"].append(accuracy)
 
-            if i % 100 == 0:
-                print(f"Epoch {epoch}, iter {i}, loss: {loss.item()}")
+            # if i % 100 == 0:
+            print(f"Epoch {epoch}, iter {i}, loss: {loss.item()}")
 
     print("Training complete")
     torch.save(model.state_dict(), "../../models/model.pth")
