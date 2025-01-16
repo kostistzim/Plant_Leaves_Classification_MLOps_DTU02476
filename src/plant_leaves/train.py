@@ -1,25 +1,27 @@
-import os
-import torch
-import matplotlib.pyplot as plt
-from model import PlantClassifier
-from src.plant_leaves.data import load_processed_data
-from torch.utils.data import DataLoader
 from pathlib import Path
 from typing import Dict
+
+import matplotlib.pyplot as plt
+import torch
+from model import PlantClassifier
+from torch.utils.data import DataLoader
+
+from src.plant_leaves.data import load_processed_data
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 DATA_PATH = Path("../../data/processed/")
 
-def train(batch_size: int=64, epochs: int = 10, lr: float=1e-4) -> None:
-    '''
+
+def train(batch_size: int = 64, epochs: int = 10, lr: float = 1e-4) -> None:
+    """
     Takes the CNN model and performs the training process
-    
+
             Parameters:
                         batch_size (int): size of training batches
                         epochs (int): number of training runs
                         lr (float): learning rate of optimizer
 
-    '''
+    """
     model = PlantClassifier().to(DEVICE)
     train_set, _, _ = load_processed_data(DATA_PATH)
 
@@ -55,6 +57,7 @@ def train(batch_size: int=64, epochs: int = 10, lr: float=1e-4) -> None:
     axs[1].plot(statistics["train_accuracy"])
     axs[1].set_title("Train accuracy")
     fig.savefig("../../reports/figures/training_statistics.png")
+
 
 if __name__ == "__main__":
     train()

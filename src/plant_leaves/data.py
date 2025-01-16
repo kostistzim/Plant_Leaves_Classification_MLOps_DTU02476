@@ -1,22 +1,20 @@
-from pathlib import Path
 import os
+from pathlib import Path
+from typing import Tuple
 
-import typer
-from torch.utils.data import Dataset
 import kagglehub
-from PIL import Image
-from typing import List, Tuple, Any
 import torch
+import typer
+from PIL import Image
 from torchvision import transforms
-import kagglehub
-
 
 data_typer = typer.Typer()
+
 
 @data_typer.command()
 def download_dataset(
     dataset: str = typer.Argument("csafrit2/plant-leaves-for-image-classification", help="Kaggle dataset identifier"),
-    destination: str = typer.Argument("../../data/raw", help="Destination folder for the dataset")
+    destination: str = typer.Argument("../../data/raw", help="Destination folder for the dataset"),
 ) -> None:
     """
     Download the dataset from Kaggle. Kaggle API must be installed and configured (https://www.kaggle.com/docs/api#authentication).
@@ -25,14 +23,16 @@ def download_dataset(
         Parameters:
             dataset (str, optional): Default value is "csafrit2/plant-leaves-for-image-classification".
             destination (str, optional): Default value is "../../data/raw".
-            
+
         Returns:
             None
     """
     try:
         kagglehub.whoami()
     except Exception as e:
-        print("Please setup Kaggle API credentials first (using kaggle.json). Check https://www.kaggle.com/docs/api#authentication")
+        print(
+            "Please setup Kaggle API credentials first (using kaggle.json). Check https://www.kaggle.com/docs/api#authentication"
+        )
         return
     # When download_dataset is called from another function with defaults, the arguments are ArgumentInfo objects
     if isinstance(dataset, typer.models.ArgumentInfo):
@@ -46,7 +46,7 @@ def download_dataset(
     if os.path.exists(destination):
         print(f"Dataset {dataset} already downloaded in {destination}")
         return
-    
+
     try:
         path = kagglehub.dataset_download(dataset)
         path = os.path.normpath(path)
@@ -60,14 +60,15 @@ def download_dataset(
 @data_typer.command()
 def preprocess(
     raw_data_path: Path = typer.Argument(
-        default=Path("../../data/raw/plant-leaves-for-image-classification/Plants_2"), help="Path to the folder containing raw data."
+        default=Path("../../data/raw/plant-leaves-for-image-classification/Plants_2"),
+        help="Path to the folder containing raw data.",
     ),
     output_folder: Path = typer.Argument(
         default=Path("../../data/processed"), help="Path to the folder where processed data will be stored."
     ),
     dimensions: Tuple[int, int] = typer.Option(
         (240, 240), help="Target dimensions for image resizing (width, height)."
-    )
+    ),
 ) -> None:
     """
     Preprocess the raw data and save the processed data in the output folder.
@@ -83,8 +84,8 @@ def preprocess(
     print("Checking if raw data folder exists...")
     if not raw_data_path.exists():
         print("The raw data folder does not exist. Downloading the dataset...")
-        download_dataset() # TODO: Add arguments properly. Issue: raw_data_path links to data folder and not to coockie cutter raw data folder.
-    if not raw_data_path.exists(): # If the download failed, exit.
+        download_dataset()  # TODO: Add arguments properly. Issue: raw_data_path links to data folder and not to coockie cutter raw data folder.
+    if not raw_data_path.exists():  # If the download failed, exit.
         print("Download failed. Exiting...")
         exit()
 
@@ -95,7 +96,7 @@ def preprocess(
         # Check if the folder exists and if not create it
         if not os.path.exists(os.path.join(output_folder, dataset_path.name)):
             os.makedirs(os.path.join(output_folder, dataset_path.name))
-    
+
         dataset_path = Path(dataset_path)
         output_path = Path(os.path.join(output_folder, dataset_path.name))
         print(dataset_path, output_path)
@@ -117,7 +118,7 @@ def normalize(images: torch.Tensor) -> torch.Tensor:
     return (images - images.mean()) / images.std()
 
 
-def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int,int] = (288, 288)) -> None:
+def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int, int] = (288, 288)) -> None:
     """
     Output two folders for each category in the dataset respectively.
 
@@ -129,18 +130,20 @@ def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int
     Returns:
     - None
     """
-    transform = transforms.Compose([
-        transforms.Resize(dimensions),  # Resize to 224x224 for most CNNs
-        transforms.ToTensor(),  # Convert to tensor
-        # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
-    ])
+    transform = transforms.Compose(
+        [
+            transforms.Resize(dimensions),  # Resize to 224x224 for most CNNs
+            transforms.ToTensor(),  # Convert to tensor
+            # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
+        ]
+    )
     datasets_pt_l, targets_pt_l = [], []
     # Extract images to output folders
     for folder_path in data_path.iterdir():
         for img_path in folder_path.iterdir():
             if img_path.suffix.lower() in [".jpg", ".jpeg", ".png"]:
                 category = "healthy" if "healthy" in img_path.name else "diseased"
-                
+
                 img = Image.open(img_path)
 
                 # Apply transformations
@@ -165,13 +168,15 @@ def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int
     torch.save(targets_pt, output_path / "targets.pt")
 
 
-def load_processed_data(processed_data_path: Path) -> Tuple[torch.utils.data.TensorDataset, torch.utils.data.TensorDataset, torch.utils.data.TensorDataset]:
+def load_processed_data(
+    processed_data_path: Path
+) -> Tuple[torch.utils.data.TensorDataset, torch.utils.data.TensorDataset, torch.utils.data.TensorDataset]:
     """
     Load the processed datasets and targets.
 
     Parameters:
     - processed_data_path: Path to the folder containing processed data.
-    
+
     Returns:
     - Tuple of three torch.utils.data.TensorDataset objects: train, test, validation
     """
@@ -187,7 +192,7 @@ def load_processed_data(processed_data_path: Path) -> Tuple[torch.utils.data.Ten
     train = torch.utils.data.TensorDataset(train_images, train_target)
     test = torch.utils.data.TensorDataset(test_images, test_target)
     validation = torch.utils.data.TensorDataset(validation_images, validation_target)
-       
+
     return train, test, validation
 
 
