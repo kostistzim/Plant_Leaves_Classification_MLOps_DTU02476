@@ -2,13 +2,19 @@ from model import PlantClassifier
 from torch.utils.data import DataLoader
 import torch
 import typer
-
+from src.plant_leaves.data import load_processed_data
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
-def load_processed_data():
-    pass
+
 def evaluate(model_checkpoint: str) -> None:
+    '''
+    Takes a pretrained CNN model and evaluates it on test data
+    
+            Parameters:
+                        model_checkpoint (str): a PathLike object containing a file name
+
+    '''
     print(model_checkpoint)
     model = PlantClassifier().to(DEVICE)
     model.load_state_dict(torch.load(model_checkpoint))
