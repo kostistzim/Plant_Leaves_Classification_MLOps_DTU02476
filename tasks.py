@@ -31,13 +31,22 @@ def dev_requirements(ctx: Context) -> None:
     """Install development requirements."""
     ctx.run('pip install -e .["dev"]', echo=True, pty=not WINDOWS)
 
+@task
+def precommit(ctx: Context) -> None:
+    """Install pre-commit hooks."""
+    ctx.run("pre-commit install", echo=True, pty=not WINDOWS)
+    
 
 # Project commands
 @task
+def download_data(ctx: Context) -> None:
+    """Download data."""
+    ctx.run(f"python src/{PROJECT_NAME}/data.py download-dataset", echo=True, pty=not WINDOWS)
+
+@task
 def preprocess_data(ctx: Context) -> None:
     """Preprocess data."""
-    ctx.run(f"python src/{PROJECT_NAME}/data.py data/raw data/processed", echo=True, pty=not WINDOWS)
-
+    ctx.run(f"python src/{PROJECT_NAME}/data.py preprocess", echo=True, pty=not WINDOWS)
 
 @task
 def train(ctx: Context) -> None:

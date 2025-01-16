@@ -14,7 +14,7 @@ data_typer = typer.Typer()
 @data_typer.command()
 def download_dataset(
     dataset: str = typer.Argument("csafrit2/plant-leaves-for-image-classification", help="Kaggle dataset identifier"),
-    destination: str = typer.Argument("../../data/raw", help="Destination folder for the dataset"),
+    destination: str = typer.Argument("data/raw", help="Destination folder for the dataset"),
 ) -> None:
     """
     Download the dataset from Kaggle. Kaggle API must be installed and configured (https://www.kaggle.com/docs/api#authentication).
@@ -60,11 +60,11 @@ def download_dataset(
 @data_typer.command()
 def preprocess(
     raw_data_path: Path = typer.Argument(
-        default=Path("../../data/raw/plant-leaves-for-image-classification/Plants_2"),
+        default=Path("data/raw/plant-leaves-for-image-classification/Plants_2"),
         help="Path to the folder containing raw data.",
     ),
     output_folder: Path = typer.Argument(
-        default=Path("../../data/processed"), help="Path to the folder where processed data will be stored."
+        default=Path("data/processed"), help="Path to the folder where processed data will be stored."
     ),
     dimensions: Tuple[int, int] = typer.Option(
         (240, 240), help="Target dimensions for image resizing (width, height)."
