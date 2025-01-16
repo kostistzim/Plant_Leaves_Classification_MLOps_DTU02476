@@ -1,13 +1,14 @@
 import torch
 import typer
+from config.logging_config import logger
 from model import PlantClassifier
 from torch.utils.data import DataLoader
 
-from src.plant_leaves.data import load_processed_data, LOG_PREFIX
-from loguru import logger
+from src.plant_leaves.data import LOG_PREFIX, load_processed_data
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 LOG_PREFIX = "TESTING"
+
 
 def evaluate(model_checkpoint: str) -> None:
     """
@@ -17,6 +18,8 @@ def evaluate(model_checkpoint: str) -> None:
                         model_checkpoint (str): a PathLike object containing a file name
 
     """
+    logger.configure(extra={"prefix": LOG_PREFIX})
+
     print(model_checkpoint)
     model = PlantClassifier().to(DEVICE)
     model.load_state_dict(torch.load(model_checkpoint))

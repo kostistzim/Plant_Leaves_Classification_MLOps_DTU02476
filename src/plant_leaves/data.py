@@ -5,12 +5,13 @@ from typing import Tuple
 import kagglehub
 import torch
 import typer
+from config.logging_config import logger
 from PIL import Image
 from torchvision import transforms
-from loguru import logger
 
 data_typer = typer.Typer()
 LOG_PREFIX = "DATA-HANDLING"
+
 
 @data_typer.command()
 @logger.catch()
@@ -18,6 +19,7 @@ def download_dataset(
     dataset: str = typer.Argument("csafrit2/plant-leaves-for-image-classification", help="Kaggle dataset identifier"),
     destination: str = typer.Argument("data/raw", help="Destination folder for the dataset"),
 ) -> None:
+    logger.configure(extra={"prefix": LOG_PREFIX})
     """
     Download the dataset from Kaggle. Kaggle API must be installed and configured (https://www.kaggle.com/docs/api#authentication).
     Note: The dataset is downloaded to the kagglehub cache folder and then moved to the destination folder.
@@ -29,6 +31,7 @@ def download_dataset(
         Returns:
             None
     """
+    # configure_logger()
     try:
         kagglehub.whoami()
     except Exception as e:
@@ -59,7 +62,9 @@ def download_dataset(
         logger.error(f"Error downloading or moving dataset: {e}")
         raise
 
+
 @data_typer.command()
+@logger.catch()
 def preprocess(
     raw_data_path: Path = typer.Argument(
         default=Path("data/raw/plant-leaves-for-image-classification/Plants_2"),
@@ -83,6 +88,8 @@ def preprocess(
         Returns:
             None
     """
+    logger.configure(extra={"prefix": LOG_PREFIX})
+
     logger.info(f"Checking if raw data folder exists...")
     try:
         if not raw_data_path.exists():
@@ -133,6 +140,8 @@ def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int
     Returns:
     - None
     """
+    logger.configure(extra={"prefix": LOG_PREFIX})
+
     transform = transforms.Compose(
         [
             transforms.Resize(dimensions),  # Resize to 224x224 for most CNNs
@@ -173,8 +182,9 @@ def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int
     logger.info(f"Datasets saved in {output_path}")
 
 
+@logger.catch()
 def load_processed_data(
-    processed_data_path: Path
+    processed_data_path: Path,
 ) -> Tuple[torch.utils.data.TensorDataset, torch.utils.data.TensorDataset, torch.utils.data.TensorDataset]:
     """
     Load the processed datasets and targets.
@@ -185,15 +195,17 @@ def load_processed_data(
     Returns:
     - Tuple of three torch.utils.data.TensorDataset objects: train, test, validation
     """
+    logger.configure(extra={"prefix": LOG_PREFIX})
+
     logger.info(f"Loading processed data...")
 
     # Load the processed datasets and targets
-    train_images = torch.load(processed_data_path / "train" / "datasets.pt")
-    train_target = torch.load(processed_data_path / "train" / "targets.pt")
-    test_images = torch.load(processed_data_path / "test" / "datasets.pt")
-    test_target = torch.load(processed_data_path / "test" / "targets.pt")
-    validation_images = torch.load(processed_data_path / "valid" / "datasets.pt")
-    validation_target = torch.load(processed_data_path / "valid" / "targets.pt")
+    train_images = torch.load(processed_data_path / "train" / "datasets.pt", weights_only=True)
+    train_target = torch.load(processed_data_path / "train" / "targets.pt", weights_only=True)
+    test_images = torch.load(processed_data_path / "test" / "datasets.pt", weights_only=True)
+    test_target = torch.load(processed_data_path / "test" / "targets.pt", weights_only=True)
+    validation_images = torch.load(processed_data_path / "valid" / "datasets.pt", weights_only=True)
+    validation_target = torch.load(processed_data_path / "valid" / "targets.pt", weights_only=True)
 
     # Create the joint datasets with targets
     train = torch.utils.data.TensorDataset(train_images, train_target)
@@ -206,7 +218,5 @@ def load_processed_data(
 
 
 if __name__ == "__main__":
-    logger.configure(extra={"prefix": LOG_PREFIX})
-    logger.remove(0)
-    logger.add("logging.log", format="[{extra[prefix]}] | {time:MMMM D, YYYY > HH:mm:ss} | {level} | {message}")
+    # configure_logger()
     data_typer()

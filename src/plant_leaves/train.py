@@ -4,15 +4,17 @@ from typing import Dict
 import hydra
 import matplotlib.pyplot as plt
 import torch
+from config.logging_config import logger
 from model import PlantClassifier
 from omegaconf.dictconfig import DictConfig
 from torch.utils.data import DataLoader
-from src.plant_leaves.data import load_processed_data
-from loguru import logger
+
+from data import load_processed_data
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
-DATA_PATH = Path("../../data/processed/")
+DATA_PATH = Path("data/processed/")
 LOG_PREFIX = "TRAINING"
+
 
 @hydra.main(
     config_path="../../configs",
@@ -33,6 +35,7 @@ def train(cfg: DictConfig) -> None:
     model = PlantClassifier().to(DEVICE)
     train_set, _, _ = load_processed_data(DATA_PATH)
 
+    logger.configure(extra={"prefix": LOG_PREFIX})
     logger.info(f"Train set size: {len(train_set)}")
 
     train_dataloader = DataLoader(dataset=train_set, batch_size=params.batch_size)
@@ -71,7 +74,4 @@ def train(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
-    logger.configure(extra={"prefix": LOG_PREFIX})
-    logger.remove(0)
-    logger.add("logging.log", format="[{extra[prefix]}] | {time:MMMM D, YYYY > HH:mm:ss} | {level} | {message}")
     train()
