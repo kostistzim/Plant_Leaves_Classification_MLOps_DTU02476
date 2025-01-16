@@ -7,12 +7,12 @@ import torch
 from model import PlantClassifier
 from omegaconf.dictconfig import DictConfig
 from torch.utils.data import DataLoader
-
-from plant_leaves.data import load_processed_data
+from src.plant_leaves.data import load_processed_data
+from loguru import logger
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
-DATA_PATH = Path("data/processed/")
-
+DATA_PATH = Path("../../data/processed/")
+LOG_PREFIX = "TRAINING"
 
 @hydra.main(
     config_path="../../configs",
@@ -33,6 +33,8 @@ def train(cfg: DictConfig) -> None:
     model = PlantClassifier().to(DEVICE)
     train_set, _, _ = load_processed_data(DATA_PATH)
 
+    logger.info(f"Train set size: {len(train_set)}")
+
     train_dataloader = DataLoader(dataset=train_set, batch_size=params.batch_size)
 
     loss_fn = torch.nn.CrossEntropyLoss()
@@ -41,6 +43,7 @@ def train(cfg: DictConfig) -> None:
     statistics: Dict[str, list[float]] = {"train_loss": [], "train_accuracy": []}
 
     for epoch in range(params.epochs):
+        logger.info(f"Initiate training")
         model.train()
         for i, (img, target) in enumerate(train_dataloader):
             img, target = img.to(DEVICE), target.to(DEVICE)
@@ -55,9 +58,9 @@ def train(cfg: DictConfig) -> None:
             statistics["train_accuracy"].append(accuracy)
 
             # if i % 100 == 0:
-            print(f"Epoch {epoch}, iter {i}, loss: {loss.item()}")
+            logger.info(f"Epoch {epoch}, iter {i}, loss: {loss.item()}")
 
-    print("Training complete")
+    logger.info("Training complete")
     torch.save(model.state_dict(), "../../models/model.pth")
     fig, axs = plt.subplots(1, 2, figsize=(15, 5))
     axs[0].plot(statistics["train_loss"])
@@ -68,4 +71,7 @@ def train(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
+    logger.configure(extra={"prefix": LOG_PREFIX})
+    logger.remove(0)
+    logger.add("logging.log", format="[{extra[prefix]}] | {time:MMMM D, YYYY > HH:mm:ss} | {level} | {message}")
     train()

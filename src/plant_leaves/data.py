@@ -7,11 +7,13 @@ import torch
 import typer
 from PIL import Image
 from torchvision import transforms
+from loguru import logger
 
 data_typer = typer.Typer()
-
+LOG_PREFIX = "DATA-HANDLING"
 
 @data_typer.command()
+@logger.catch()
 def download_dataset(
     dataset: str = typer.Argument("csafrit2/plant-leaves-for-image-classification", help="Kaggle dataset identifier"),
     destination: str = typer.Argument("data/raw", help="Destination folder for the dataset"),
@@ -30,10 +32,10 @@ def download_dataset(
     try:
         kagglehub.whoami()
     except Exception as e:
-        print(
+        logger.warning(
             "Please setup Kaggle API credentials first (using kaggle.json). Check https://www.kaggle.com/docs/api#authentication"
         )
-        return
+        raise
     # When download_dataset is called from another function with defaults, the arguments are ArgumentInfo objects
     if isinstance(dataset, typer.models.ArgumentInfo):
         dataset = str(dataset.default)
@@ -44,18 +46,18 @@ def download_dataset(
     destination = os.path.normpath(destination)
 
     if os.path.exists(destination):
-        print(f"Dataset {dataset} already downloaded in {destination}")
+        logger.info(f"Dataset {dataset} already downloaded in {destination}")
         return
 
     try:
         path = kagglehub.dataset_download(dataset)
         path = os.path.normpath(path)
-        print("Path (kagglehub cache) to dataset files:", path)
+        logger.info(f"Path (kagglehub cache) to dataset files:", path)
         os.rename(path, destination)
-        print("Files moved to:", destination)
+        logger.info(f"Files moved to:", destination)
     except Exception as e:
-        print(f"Error downloading or moving dataset: {e}")
-
+        logger.error(f"Error downloading or moving dataset: {e}")
+        raise
 
 @data_typer.command()
 def preprocess(
@@ -81,15 +83,16 @@ def preprocess(
         Returns:
             None
     """
-    print("Checking if raw data folder exists...")
-    if not raw_data_path.exists():
-        print("The raw data folder does not exist. Downloading the dataset...")
-        download_dataset()  # TODO: Add arguments properly. Issue: raw_data_path links to data folder and not to coockie cutter raw data folder.
-    if not raw_data_path.exists():  # If the download failed, exit.
-        print("Download failed. Exiting...")
+    logger.info(f"Checking if raw data folder exists...")
+    try:
+        if not raw_data_path.exists():
+            logger.info(f"The raw data folder does not exist. Downloading the dataset...")
+            download_dataset()  # TODO: Add arguments properly. Issue: raw_data_path links to data folder and not to coockie cutter raw data folder.
+    except Exception as e:  # If the download failed, exit.
+        logger.error("Download failed. Exiting...")
         exit()
 
-    print("Preprocessing data...")
+    logger.info(f"Preprocessing data...")
     for dataset_path in raw_data_path.iterdir():
         if dataset_path.name == "images to predict":
             continue
@@ -99,7 +102,7 @@ def preprocess(
 
         dataset_path = Path(dataset_path)
         output_path = Path(os.path.join(output_folder, dataset_path.name))
-        print(dataset_path, output_path)
+        logger.info(f"Dataset path : {dataset_path} \n Output path : {output_path}")
         if dataset_path.name == "train":
             main_preprocessing(dataset_path, output_path, dimensions=dimensions)
         else:
@@ -167,6 +170,8 @@ def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int
     torch.save(datasets_pt, output_path / "datasets.pt")
     torch.save(targets_pt, output_path / "targets.pt")
 
+    logger.info(f"Datasets saved in {output_path}")
+
 
 def load_processed_data(
     processed_data_path: Path
@@ -180,6 +185,8 @@ def load_processed_data(
     Returns:
     - Tuple of three torch.utils.data.TensorDataset objects: train, test, validation
     """
+    logger.info(f"Loading processed data...")
+
     # Load the processed datasets and targets
     train_images = torch.load(processed_data_path / "train" / "datasets.pt")
     train_target = torch.load(processed_data_path / "train" / "targets.pt")
@@ -193,8 +200,13 @@ def load_processed_data(
     test = torch.utils.data.TensorDataset(test_images, test_target)
     validation = torch.utils.data.TensorDataset(validation_images, validation_target)
 
+    logger.info(f"Data loaded successfully")
+
     return train, test, validation
 
 
 if __name__ == "__main__":
+    logger.configure(extra={"prefix": LOG_PREFIX})
+    logger.remove(0)
+    logger.add("logging.log", format="[{extra[prefix]}] | {time:MMMM D, YYYY > HH:mm:ss} | {level} | {message}")
     data_typer()
