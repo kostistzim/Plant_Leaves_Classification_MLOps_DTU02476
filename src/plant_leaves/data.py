@@ -5,7 +5,7 @@ import typer
 from torch.utils.data import Dataset
 import kagglehub
 from PIL import Image
-from typing import List, Tuple
+from typing import List, Tuple, Any
 import torch
 from torchvision import transforms
 import kagglehub
@@ -36,9 +36,9 @@ def download_dataset(
         return
     # When download_dataset is called from another function with defaults, the arguments are ArgumentInfo objects
     if isinstance(dataset, typer.models.ArgumentInfo):
-        dataset = dataset.default
+        dataset = str(dataset.default)
     if isinstance(destination, typer.models.ArgumentInfo):
-        destination = destination.default
+        destination = str(destination.default)
     dataset_folder_name = dataset.split("/")[-1]
     destination = os.path.join(destination, dataset_folder_name)
     destination = os.path.normpath(destination)
@@ -60,12 +60,12 @@ def download_dataset(
 @data_typer.command()
 def preprocess(
     raw_data_path: Path = typer.Argument(
-        default=Path("../../data/raw/plant-leaves-for-image-classification\Plants_2"), help="Path to the folder containing raw data."
+        default=Path("../../data/raw/plant-leaves-for-image-classification/Plants_2"), help="Path to the folder containing raw data."
     ),
     output_folder: Path = typer.Argument(
         default=Path("../../data/processed"), help="Path to the folder where processed data will be stored."
     ),
-    dimensions: tuple[int, int] = typer.Option(
+    dimensions: Tuple[int, int] = typer.Option(
         (240, 240), help="Target dimensions for image resizing (width, height)."
     )
 ) -> None:
@@ -117,16 +117,24 @@ def normalize(images: torch.Tensor) -> torch.Tensor:
     return (images - images.mean()) / images.std()
 
 
-def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int,int] = [288, 288]) -> None:
+def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int,int] = (288, 288)) -> None:
     """
     Output two folders for each category in the dataset respectively.
+
+    Parameters:
+    - data_path: Path to the folder containing raw data.
+    - output_path: Path to the folder where processed data will be stored.
+    - dimensions: Target dimensions for image resizing (width, height).
+
+    Returns:
+    - None
     """
     transform = transforms.Compose([
         transforms.Resize(dimensions),  # Resize to 224x224 for most CNNs
         transforms.ToTensor(),  # Convert to tensor
         # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
     ])
-    datasets_pt, targets_pt = [], []
+    datasets_pt_l, targets_pt_l = [], []
     # Extract images to output folders
     for folder_path in data_path.iterdir():
         for img_path in folder_path.iterdir():
@@ -139,15 +147,15 @@ def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int
                 tensor = transform(img)
 
                 if category == "healthy":
-                    datasets_pt.append(tensor)
-                    targets_pt.append(0)
+                    datasets_pt_l.append(tensor)
+                    targets_pt_l.append(0)
                 else:
-                    datasets_pt.append(tensor)
-                    targets_pt.append(1)
+                    datasets_pt_l.append(tensor)
+                    targets_pt_l.append(1)
 
     # Transform lists to tensors
-    datasets_pt = torch.stack(datasets_pt)
-    targets_pt = torch.tensor(targets_pt)
+    datasets_pt = torch.stack(datasets_pt_l)
+    targets_pt = torch.tensor(targets_pt_l)
 
     # Normalize the datasets
     datasets_pt = normalize(datasets_pt)
@@ -158,7 +166,15 @@ def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int
 
 
 def load_processed_data(processed_data_path: Path) -> Tuple[torch.utils.data.TensorDataset, torch.utils.data.TensorDataset, torch.utils.data.TensorDataset]:
+    """
+    Load the processed datasets and targets.
 
+    Parameters:
+    - processed_data_path: Path to the folder containing processed data.
+    
+    Returns:
+    - Tuple of three torch.utils.data.TensorDataset objects: train, test, validation
+    """
     # Load the processed datasets and targets
     train_images = torch.load(processed_data_path / "train" / "datasets.pt")
     train_target = torch.load(processed_data_path / "train" / "targets.pt")
