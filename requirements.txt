@@ -7,3 +7,4 @@ timm==1.0.13
 pillow==11.1.0
 numpy==2.2.1
 torchvision==0.20.1
+matplotlib==3.10.0

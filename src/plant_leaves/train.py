@@ -2,15 +2,16 @@ import os
 import torch
 import matplotlib.pyplot as plt
 from model import PlantClassifier
-#from data import load_processed_data
+from src.plant_leaves.data import load_processed_data
 from torch.utils.data import DataLoader
+from pathlib import Path
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
-def load_processed_data():
-    pass
+DATA_PATH = Path("../../data/processed/")
+
 def train(batch_size: int=64, epochs: int = 10, lr: float=1e-4) -> None:
     model = PlantClassifier().to(DEVICE)
-    train_set, _, _ = load_processed_data()
+    train_set, _, _ = load_processed_data(DATA_PATH)
 
     train_dataloader = DataLoader(dataset=train_set, batch_size=batch_size)
 
@@ -37,18 +38,13 @@ def train(batch_size: int=64, epochs: int = 10, lr: float=1e-4) -> None:
                 print(f"Epoch {epoch}, iter {i}, loss: {loss.item()}")
 
     print("Training complete")
-    torch.save(model.state_dict(), "/models/model.pth")
+    torch.save(model.state_dict(), "../../models/model.pth")
     fig, axs = plt.subplots(1, 2, figsize=(15, 5))
     axs[0].plot(statistics["train_loss"])
     axs[0].set_title("Train loss")
     axs[1].plot(statistics["train_accuracy"])
     axs[1].set_title("Train accuracy")
-    fig.savefig("reports/figures/training_statistics.png")
-
-
-
-
+    fig.savefig("../../reports/figures/training_statistics.png")
 
 if __name__ == "__main__":
-    print(os.getcwd())
     train()
