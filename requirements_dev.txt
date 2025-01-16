@@ -19,3 +19,6 @@ mkdocstrings-python==1.12.2
 
 # typing
 mypy==1.14.1
+
+# pre-commit
+pre-commit==4.0.1

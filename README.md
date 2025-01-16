@@ -80,3 +80,67 @@ a [cookiecutter template](https://github.com/cookiecutter/cookiecutter) for gett
 started with Machine Learning Operations (MLOps).
 
 
+# Project Setup and Commands
+
+> Please go through the commands one by one.
+
+## Setup Commands
+
+### 1. Create a New Conda Environment
+This command creates a new Conda environment for the project with the specified Python version.
+
+`invoke create-environment`
+
+### 2. Install Project Requirements
+This command installs the required dependencies for the project.
+
+`invoke requirements`
+
+### 3. Install Development Requirements
+This command installs the development dependencies for the project.
+
+`invoke dev-requirements`
+
+### 4. Install Pre-commit Hooks
+This command installs the pre-commit hooks for the project.
+
+`invoke precommit`
+
+## Project Commands
+
+### 1. Download Data
+This command downloads the project dataset.
+
+`invoke download-data`
+
+### 2. Preprocess Data
+This command preprocesses the raw data into processed data.
+
+`invoke preprocess-data`
+
+### 3. Train Model
+This command trains the model for the project.
+
+`invoke train`
+
+<!--### 4. Run Tests
+This command runs the tests for the project and generates a coverage report.
+
+invoke test
+
+### 5. Build Docker Images
+This command builds the Docker images for the project, one for training and one for the API.
+
+invoke docker-build
+
+## Documentation Commands
+
+### 1. Build Documentation
+This command builds the project documentation using MkDocs.
+
+invoke build-docs
+
+### 2. Serve Documentation
+This command serves the project documentation locally using MkDocs.
+
+invoke serve-docs -->
