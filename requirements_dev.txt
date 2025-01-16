@@ -2,9 +2,6 @@
 invoke==2.2.0
 pipreqs==0.4.13
 
-# pre-commit
-pre-commit==3.5.0
-
 # testing
 pytest==7.4.3
 coverage==7.6.9
