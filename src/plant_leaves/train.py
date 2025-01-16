@@ -6,7 +6,7 @@ import torch
 from model import PlantClassifier
 from torch.utils.data import DataLoader
 
-from src.plant_leaves.data import load_processed_data
+from plant_leaves.data import load_processed_data
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 DATA_PATH = Path("../../data/processed/")
