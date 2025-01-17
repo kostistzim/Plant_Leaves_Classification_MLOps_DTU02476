@@ -5,13 +5,11 @@ import hydra
 import matplotlib.pyplot as plt
 import torch
 import wandb
+from model import PlantClassifier
 from omegaconf.dictconfig import DictConfig
 from torch.utils.data import DataLoader
 from datetime import datetime
 
-from plant_leaves.config.logging_config import logger
-from plant_leaves.data import load_processed_data
-from plant_leaves.model import PlantClassifier
 from data import load_processed_data
 
 import os
@@ -21,19 +19,13 @@ load_dotenv()
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 DATA_PATH = Path("data/processed/")
-LOG_PREFIX = "TRAINING"
 
 # Dynamically determine project root (assumes this script is located within the project)
 PROJECT_ROOT = Path(__file__).resolve().parents[2]  # Adjust the number based on your folder structure
 MODELS_PATH = PROJECT_ROOT / "models" 
 FIGURES_PATH = PROJECT_ROOT / "reports" / "figures"  
 
-@hydra.main(
-    config_path="../../configs",
-    config_name="default_config.yaml",
-    version_base=None,
-)
-def train(cfg: DictConfig) -> None:
+def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
     """
     Takes the CNN model and performs the training process
 
@@ -43,8 +35,6 @@ def train(cfg: DictConfig) -> None:
                         lr (float): learning rate of optimizer
 
     """
-    params = cfg.experiment
-
     # Load WandB environment variables
     wandb_api_key = os.getenv("WANDB_API_KEY")
     wandb_project = os.getenv("WANDB_PROJECT")
@@ -59,35 +49,30 @@ def train(cfg: DictConfig) -> None:
         mode = "online"
 
     current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_name = f"train_{current_time}_lr_{params.lr}_bs_{params.batch_size}_epochs_{params.epochs}"
+    run_name = f"train_{current_time}_lr_{lr}_bs_{batch_size}_epochs_{epochs}"
     run = wandb.init(
         project=wandb_project,  # Group all experiments for this project
         entity=wandb_entity,             # Specify the team or user account
         job_type="train",             # Specify the type of job
         name=run_name,
-        config={"lr": params.lr, "batch_size": params.batch_size, "epochs": params.epochs},
+        config={"lr": lr, "batch_size": batch_size, "epochs": epochs},
         mode=mode
     )
 
     model = PlantClassifier().to(DEVICE)
     train_set, _, validation_set = load_processed_data(DATA_PATH)
 
-    logger.configure(extra={"prefix": LOG_PREFIX})
-    logger.info(f"Train set size: {len(train_set)}")
-    logger.info(f"Validation set size: {len(validation_set)}")
-
-    # train_dataloader = DataLoader(dataset=train_set, batch_size=params.batch_size)
-    train_dataloader = DataLoader(dataset=train_set, batch_size=params.batch_size)
-    val_dataloader = DataLoader(dataset=validation_set, batch_size=params.batch_size)
+    train_dataloader = DataLoader(dataset=train_set, batch_size=batch_size)
+    val_dataloader = DataLoader(dataset=validation_set, batch_size=batch_size)
 
     loss_fn = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=params.lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     statistics: Dict[str, list[float]] = {
         "train_loss": [], "train_accuracy": [], "val_loss": [], "val_accuracy": []
     }
     
-    for epoch in range(params.epochs):
+    for epoch in range(epochs):
         model.train()
         epoch_loss, epoch_accuracy = 0.0, 0.0
         for i, (img, target) in enumerate(train_dataloader):
@@ -105,12 +90,12 @@ def train(cfg: DictConfig) -> None:
 
             wandb.log({"train_loss": loss.item(), "train_accuracy": accuracy})
             if i % 100 == 0:
-                logger.info(f"Epoch {epoch}, iter {i}, loss: {loss.item()}")
+                print(f"Epoch {epoch}, iter {i}, loss: {loss.item()}")
 
         epoch_loss = epoch_loss / len(train_dataloader)
         epoch_accuracy = epoch_accuracy / len(train_set)
         
-        logger.info(f"Epoch {epoch}, loss: {epoch_loss}, accuracy: {epoch_accuracy}")
+        print(f"Epoch {epoch}, loss: {epoch_loss}, accuracy: {epoch_accuracy}")
         wandb.log({"epoch_train_loss": epoch_loss, "epoch_train_accuracy": epoch_accuracy})
 
         # Validation loop
