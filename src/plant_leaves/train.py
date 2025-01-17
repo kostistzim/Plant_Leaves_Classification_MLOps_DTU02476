@@ -1,3 +1,5 @@
+import os
+from datetime import datetime
 from pathlib import Path
 from typing import Dict
 
@@ -5,17 +7,14 @@ import hydra
 import matplotlib.pyplot as plt
 import torch
 import wandb
+from dotenv import load_dotenv
 from omegaconf.dictconfig import DictConfig
 from torch.utils.data import DataLoader
-from datetime import datetime
 
+from data import load_processed_data
 from plant_leaves.config.logging_config import logger
 from plant_leaves.data import load_processed_data
 from plant_leaves.model import PlantClassifier
-from data import load_processed_data
-
-import os
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -23,8 +22,8 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.ba
 DATA_PATH = Path("data/processed/")
 LOG_PREFIX = "TRAINING"
 
+
 @hydra.main(
-    config_path="configs/",
     config_name="default_config.yaml",
     version_base=None,
 )
@@ -46,10 +45,12 @@ def train(cfg: DictConfig) -> None:
     wandb_entity = os.getenv("WANDB_ENTITY")
 
     if not all([wandb_api_key, wandb_project, wandb_entity]):
-        logger.info("Please set WANDB_API_KEY, WANDB_PROJECT, and WANDB_ENTITY in the environment variables") # logged as DEBUG
-        mode="disabled"
+        logger.info(
+            "Please set WANDB_API_KEY, WANDB_PROJECT, and WANDB_ENTITY in the environment variables"
+        )  # logged as DEBUG
+        mode = "disabled"
     else:
-        logger.info(f"Logging in with api key to project {wandb_project} for entity {wandb_entity}") # logged as DEBUG
+        logger.info(f"Logging in with api key to project {wandb_project} for entity {wandb_entity}")  # logged as DEBUG
         wandb.login(key=wandb_api_key)
         mode = "online"
 
@@ -57,11 +58,11 @@ def train(cfg: DictConfig) -> None:
     run_name = f"train_{current_time}_lr_{params.lr}_bs_{params.batch_size}_epochs_{params.epochs}"
     run = wandb.init(
         project=wandb_project,  # Group all experiments for this project
-        entity=wandb_entity,             # Specify the team or user account
-        job_type="train",             # Specify the type of job
+        entity=wandb_entity,  # Specify the team or user account
+        job_type="train",  # Specify the type of job
         name=run_name,
         config={"lr": params.lr, "batch_size": params.batch_size, "epochs": params.epochs},
-        mode=mode
+        mode=mode,
     )
 
     model = PlantClassifier().to(DEVICE)
@@ -78,10 +79,8 @@ def train(cfg: DictConfig) -> None:
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=params.lr)
 
-    statistics: Dict[str, list[float]] = {
-        "train_loss": [], "train_accuracy": [], "val_loss": [], "val_accuracy": []
-    }
-    
+    statistics: Dict[str, list[float]] = {"train_loss": [], "train_accuracy": [], "val_loss": [], "val_accuracy": []}
+
     for epoch in range(params.epochs):
         model.train()
         epoch_loss, epoch_accuracy = 0.0, 0.0
@@ -104,7 +103,7 @@ def train(cfg: DictConfig) -> None:
 
         epoch_loss = epoch_loss / len(train_dataloader)
         epoch_accuracy = epoch_accuracy / len(train_set)
-        
+
         logger.info(f"Epoch {epoch}, loss: {epoch_loss}, accuracy: {epoch_accuracy}")
         wandb.log({"epoch_train_loss": epoch_loss, "epoch_train_accuracy": epoch_accuracy})
 
@@ -149,8 +148,9 @@ def train(cfg: DictConfig) -> None:
     )
     artifact.add_file(model_path)
     run.log_artifact(artifact)
-        
+
     run.finish()
+
 
 if __name__ == "__main__":
     train()

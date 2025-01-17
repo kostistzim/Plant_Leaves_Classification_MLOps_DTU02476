@@ -34,3 +34,6 @@ omit = ["tests/*"]
 
 [tool.mypy]
 ignore_missing_imports = true
+
+[tool.hydra]
+config_path = "configs/"
