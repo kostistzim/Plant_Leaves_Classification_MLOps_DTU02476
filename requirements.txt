@@ -9,3 +9,5 @@ pillow==11.1.0
 numpy==2.2.1
 torchvision==0.20.1
 matplotlib==3.10.0
+wandb==0.19.4
+python-dotenv==1.0.1
