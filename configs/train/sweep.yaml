@@ -1,0 +1,18 @@
+program: src/plant_leaves/train.py
+name: sweep-train-plant-leaf-classifier
+project: plant_leaf_classification  # change this
+entity: xhino1997-danmarks-tekniske-universitet-dtu  # change this
+method: bayes
+metric:
+    goal: minimize
+    name: val_loss
+parameters:
+    learning_rate:
+        min: 0.0001
+        max: 0.1
+        distribution: log_uniform
+    batch_size:
+        values:  [8, 16, 32, 64, 128]
+    epochs:
+        values: [5, 10, 15, 20]
+run_cap: 10
