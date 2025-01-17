@@ -8,32 +8,38 @@ import typer
 from PIL import Image
 from torchvision import transforms
 
+from plant_leaves.config.logging_config import logger
+
 data_typer = typer.Typer()
+LOG_PREFIX = "DATA-HANDLING"
 
 
 @data_typer.command()
+@logger.catch()
 def download_dataset(
     dataset: str = typer.Argument("csafrit2/plant-leaves-for-image-classification", help="Kaggle dataset identifier"),
     destination: str = typer.Argument("data/raw", help="Destination folder for the dataset"),
 ) -> None:
+    logger.configure(extra={"prefix": LOG_PREFIX})
     """
     Download the dataset from Kaggle. Kaggle API must be installed and configured (https://www.kaggle.com/docs/api#authentication).
     Note: The dataset is downloaded to the kagglehub cache folder and then moved to the destination folder.
 
         Parameters:
             dataset (str, optional): Default value is "csafrit2/plant-leaves-for-image-classification".
-            destination (str, optional): Default value is "../../data/raw".
+            destination (str, optional): Default value is "data/raw".
 
         Returns:
             None
     """
+    # configure_logger()
     try:
         kagglehub.whoami()
     except Exception as e:
-        print(
+        logger.warning(
             "Please setup Kaggle API credentials first (using kaggle.json). Check https://www.kaggle.com/docs/api#authentication"
         )
-        return
+        raise
     # When download_dataset is called from another function with defaults, the arguments are ArgumentInfo objects
     if isinstance(dataset, typer.models.ArgumentInfo):
         dataset = str(dataset.default)
@@ -44,20 +50,22 @@ def download_dataset(
     destination = os.path.normpath(destination)
 
     if os.path.exists(destination):
-        print(f"Dataset {dataset} already downloaded in {destination}")
+        logger.info(f"Dataset {dataset} already downloaded in {destination}")
         return
 
     try:
         path = kagglehub.dataset_download(dataset)
         path = os.path.normpath(path)
-        print("Path (kagglehub cache) to dataset files:", path)
+        logger.info(f"Path (kagglehub cache) to dataset files:", path)
         os.rename(path, destination)
-        print("Files moved to:", destination)
+        logger.info(f"Files moved to:", destination)
     except Exception as e:
-        print(f"Error downloading or moving dataset: {e}")
+        logger.error(f"Error downloading or moving dataset: {e}")
+        raise
 
 
 @data_typer.command()
+@logger.catch()
 def preprocess(
     raw_data_path: Path = typer.Argument(
         default=Path("data/raw/plant-leaves-for-image-classification/Plants_2"),
@@ -81,15 +89,18 @@ def preprocess(
         Returns:
             None
     """
-    print("Checking if raw data folder exists...")
-    if not raw_data_path.exists():
-        print("The raw data folder does not exist. Downloading the dataset...")
-        download_dataset()  # TODO: Add arguments properly. Issue: raw_data_path links to data folder and not to coockie cutter raw data folder.
-    if not raw_data_path.exists():  # If the download failed, exit.
-        print("Download failed. Exiting...")
+    logger.configure(extra={"prefix": LOG_PREFIX})
+
+    logger.info(f"Checking if raw data folder exists...")
+    try:
+        if not raw_data_path.exists():
+            logger.info(f"The raw data folder does not exist. Downloading the dataset...")
+            download_dataset()  # TODO: Add arguments properly. Issue: raw_data_path links to data folder and not to coockie cutter raw data folder.
+    except Exception as e:  # If the download failed, exit.
+        logger.error("Download failed. Exiting...")
         exit()
 
-    print("Preprocessing data...")
+    logger.info(f"Preprocessing data...")
     for dataset_path in raw_data_path.iterdir():
         if dataset_path.name == "images to predict":
             continue
@@ -99,7 +110,7 @@ def preprocess(
 
         dataset_path = Path(dataset_path)
         output_path = Path(os.path.join(output_folder, dataset_path.name))
-        print(dataset_path, output_path)
+        logger.info(f"Dataset path : {dataset_path} \n Output path : {output_path}")
         if dataset_path.name == "train":
             main_preprocessing(dataset_path, output_path, dimensions=dimensions)
         else:
@@ -130,6 +141,8 @@ def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int
     Returns:
     - None
     """
+    logger.configure(extra={"prefix": LOG_PREFIX})
+
     transform = transforms.Compose(
         [
             transforms.Resize(dimensions),  # Resize to 224x224 for most CNNs
@@ -167,9 +180,12 @@ def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int
     torch.save(datasets_pt, output_path / "datasets.pt")
     torch.save(targets_pt, output_path / "targets.pt")
 
+    logger.info(f"Datasets saved in {output_path}")
 
+
+@logger.catch()
 def load_processed_data(
-    processed_data_path: Path
+    processed_data_path: Path,
 ) -> Tuple[torch.utils.data.TensorDataset, torch.utils.data.TensorDataset, torch.utils.data.TensorDataset]:
     """
     Load the processed datasets and targets.
@@ -180,21 +196,28 @@ def load_processed_data(
     Returns:
     - Tuple of three torch.utils.data.TensorDataset objects: train, test, validation
     """
+    logger.configure(extra={"prefix": LOG_PREFIX})
+
+    logger.info(f"Loading processed data...")
+
     # Load the processed datasets and targets
-    train_images = torch.load(processed_data_path / "train" / "datasets.pt")
-    train_target = torch.load(processed_data_path / "train" / "targets.pt")
-    test_images = torch.load(processed_data_path / "test" / "datasets.pt")
-    test_target = torch.load(processed_data_path / "test" / "targets.pt")
-    validation_images = torch.load(processed_data_path / "valid" / "datasets.pt")
-    validation_target = torch.load(processed_data_path / "valid" / "targets.pt")
+    train_images = torch.load(processed_data_path / "train" / "datasets.pt", weights_only=True)
+    train_target = torch.load(processed_data_path / "train" / "targets.pt", weights_only=True)
+    test_images = torch.load(processed_data_path / "test" / "datasets.pt", weights_only=True)
+    test_target = torch.load(processed_data_path / "test" / "targets.pt", weights_only=True)
+    validation_images = torch.load(processed_data_path / "valid" / "datasets.pt", weights_only=True)
+    validation_target = torch.load(processed_data_path / "valid" / "targets.pt", weights_only=True)
 
     # Create the joint datasets with targets
     train = torch.utils.data.TensorDataset(train_images, train_target)
     test = torch.utils.data.TensorDataset(test_images, test_target)
     validation = torch.utils.data.TensorDataset(validation_images, validation_target)
 
+    logger.info(f"Data loaded successfully")
+
     return train, test, validation
 
 
 if __name__ == "__main__":
+    # configure_logger()
     data_typer()
