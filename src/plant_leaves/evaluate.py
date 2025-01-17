@@ -1,10 +1,10 @@
 import torch
 import typer
-from config.logging_config import logger
-from model import PlantClassifier
 from torch.utils.data import DataLoader
 
-from src.plant_leaves.data import LOG_PREFIX, load_processed_data
+from plant_leaves.config.logging_config import logger
+from plant_leaves.data import LOG_PREFIX, load_processed_data
+from plant_leaves.model import PlantClassifier
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 LOG_PREFIX = "TESTING"

@@ -2,8 +2,6 @@ import os
 
 from invoke import Context, task
 
-from src.plant_leaves.config.logging_config import configure_logger
-
 WINDOWS = os.name == "nt"
 PROJECT_NAME = "plant_leaves"
 PYTHON_VERSION = "3.11"

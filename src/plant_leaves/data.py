@@ -5,9 +5,10 @@ from typing import Tuple
 import kagglehub
 import torch
 import typer
-from config.logging_config import logger
 from PIL import Image
 from torchvision import transforms
+
+from plant_leaves.config.logging_config import logger
 
 data_typer = typer.Typer()
 LOG_PREFIX = "DATA-HANDLING"
@@ -26,7 +27,7 @@ def download_dataset(
 
         Parameters:
             dataset (str, optional): Default value is "csafrit2/plant-leaves-for-image-classification".
-            destination (str, optional): Default value is "../../data/raw".
+            destination (str, optional): Default value is "data/raw".
 
         Returns:
             None

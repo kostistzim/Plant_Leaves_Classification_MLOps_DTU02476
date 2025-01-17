@@ -4,12 +4,12 @@ from typing import Dict
 import hydra
 import matplotlib.pyplot as plt
 import torch
-from config.logging_config import logger
-from model import PlantClassifier
 from omegaconf.dictconfig import DictConfig
 from torch.utils.data import DataLoader
 
-from data import load_processed_data
+from plant_leaves.config.logging_config import logger
+from plant_leaves.data import load_processed_data
+from plant_leaves.model import PlantClassifier
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 DATA_PATH = Path("data/processed/")
@@ -17,7 +17,7 @@ LOG_PREFIX = "TRAINING"
 
 
 @hydra.main(
-    config_path="../../configs",
+    config_path="configs",
     config_name="default_config.yaml",
     version_base=None,
 )
@@ -60,17 +60,17 @@ def train(cfg: DictConfig) -> None:
             accuracy = (y_pred.argmax(dim=1) == target).float().mean().item()
             statistics["train_accuracy"].append(accuracy)
 
-            # if i % 100 == 0:
-            logger.info(f"Epoch {epoch}, iter {i}, loss: {loss.item()}")
+            if i % 100 == 0:
+                logger.info(f"Epoch {epoch}, iter {i}, loss: {loss.item()}")
 
     logger.info("Training complete")
-    torch.save(model.state_dict(), "../../models/model.pth")
+    torch.save(model.state_dict(), "models/model.pth")
     fig, axs = plt.subplots(1, 2, figsize=(15, 5))
     axs[0].plot(statistics["train_loss"])
     axs[0].set_title("Train loss")
     axs[1].plot(statistics["train_accuracy"])
     axs[1].set_title("Train accuracy")
-    fig.savefig("../../reports/figures/training_statistics.png")
+    fig.savefig("reports/figures/training_statistics.png")
 
 
 if __name__ == "__main__":
