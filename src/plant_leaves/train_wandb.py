@@ -20,10 +20,6 @@ load_dotenv()
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 DATA_PATH = Path("data/processed/")
 
-# Dynamically determine project root (assumes this script is located within the project)
-PROJECT_ROOT = Path(__file__).resolve().parents[2]  # Adjust the number based on your folder structure
-MODELS_PATH = PROJECT_ROOT / "models" 
-FIGURES_PATH = PROJECT_ROOT / "reports" / "figures"  
 
 def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
     """
@@ -119,16 +115,16 @@ def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
         print(f"Validation loss: {val_loss}, accuracy: {val_accuracy}")
 
     print("Training complete")
-    model_path = MODELS_PATH / "model.pth"
+    model_path = "models/model.pth"
     torch.save(model.state_dict(), model_path)
     fig, axs = plt.subplots(1, 2, figsize=(15, 5))
     axs[0].plot(statistics["train_loss"])
     axs[0].set_title("Train loss")
     axs[1].plot(statistics["train_accuracy"])
     axs[1].set_title("Train accuracy")
-    fig_path = FIGURES_PATH / "training_statistics.png"
+    fig_path = "reports/figures/training_statistics.png"
     fig.savefig(fig_path)
-    run.log({"training_statistics_via_matplotlib": wandb.Image(str(fig_path))})
+    run.log({"training_statistics_via_matplotlib": wandb.Image(fig_path)})
 
     # Log model to wandb
     artifact = wandb.Artifact(
@@ -137,7 +133,7 @@ def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
         description="A model trained to classify healthy and diseased plant leaves",
         metadata={"accuracy": statistics["train_accuracy"][-1], "loss": statistics["train_loss"][-1]},
     )
-    artifact.add_file(str(model_path))
+    artifact.add_file(model_path)
     run.log_artifact(artifact)
         
     run.finish()
