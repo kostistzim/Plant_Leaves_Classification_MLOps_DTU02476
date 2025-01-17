@@ -46,10 +46,10 @@ def train(cfg: DictConfig) -> None:
     wandb_entity = os.getenv("WANDB_ENTITY")
 
     if not all([wandb_api_key, wandb_project, wandb_entity]):
-        print("Please set WANDB_API_KEY, WANDB_PROJECT, and WANDB_ENTITY in the environment variables") # logged as DEBUG
+        logger.info("Please set WANDB_API_KEY, WANDB_PROJECT, and WANDB_ENTITY in the environment variables") # logged as DEBUG
         mode="disabled"
     else:
-        print(f"Logging in with api key to project {wandb_project} for entity {wandb_entity}") # logged as DEBUG
+        logger.info(f"Logging in with api key to project {wandb_project} for entity {wandb_entity}") # logged as DEBUG
         wandb.login(key=wandb_api_key)
         mode = "online"
 
@@ -126,9 +126,9 @@ def train(cfg: DictConfig) -> None:
         statistics["val_accuracy"].append(val_accuracy)
 
         wandb.log({"val_loss": val_loss, "val_accuracy": val_accuracy})
-        print(f"Validation loss: {val_loss}, accuracy: {val_accuracy}")
+        logger.info(f"Validation loss: {val_loss}, accuracy: {val_accuracy}")
 
-    print("Training complete")
+    logger.info("Training complete")
     model_path = "models/model.pth"
     torch.save(model.state_dict(), model_path)
     fig, axs = plt.subplots(1, 2, figsize=(15, 5))

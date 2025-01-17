@@ -1,16 +1,17 @@
 from pathlib import Path
 from typing import Dict
 
-import hydra
 import matplotlib.pyplot as plt
 import torch
 import wandb
-from model import PlantClassifier
+
+from plant_leaves.config.logging_config import logger
+from plant_leaves.model import PlantClassifier
 from omegaconf.dictconfig import DictConfig
 from torch.utils.data import DataLoader
 from datetime import datetime
 
-from data import load_processed_data
+from plant_leaves.data import load_processed_data
 
 import os
 from dotenv import load_dotenv
@@ -19,6 +20,7 @@ load_dotenv()
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 DATA_PATH = Path("data/processed/")
+LOG_PREFIX = "TRAINING"
 
 
 def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
@@ -37,10 +39,10 @@ def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
     wandb_entity = os.getenv("WANDB_ENTITY")
 
     if not all([wandb_api_key, wandb_project, wandb_entity]):
-        print("Please set WANDB_API_KEY, WANDB_PROJECT, and WANDB_ENTITY in the environment variables") # logged as DEBUG
+        logger.info("Please set WANDB_API_KEY, WANDB_PROJECT, and WANDB_ENTITY in the environment variables") # logged as DEBUG
         mode="disabled"
     else:
-        print(f"Logging in with api key to project {wandb_project} for entity {wandb_entity}") # logged as DEBUG
+        logger.info(f"Logging in with api key to project {wandb_project} for entity {wandb_entity}") # logged as DEBUG
         wandb.login(key=wandb_api_key)
         mode = "online"
 
@@ -57,6 +59,10 @@ def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
 
     model = PlantClassifier().to(DEVICE)
     train_set, _, validation_set = load_processed_data(DATA_PATH)
+
+    logger.configure(extra={"prefix": LOG_PREFIX})
+    logger.info(f"Train set size: {len(train_set)}")
+    logger.info(f"Validation set size: {len(validation_set)}")
 
     train_dataloader = DataLoader(dataset=train_set, batch_size=batch_size)
     val_dataloader = DataLoader(dataset=validation_set, batch_size=batch_size)
@@ -86,12 +92,12 @@ def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
 
             wandb.log({"train_loss": loss.item(), "train_accuracy": accuracy})
             if i % 100 == 0:
-                print(f"Epoch {epoch}, iter {i}, loss: {loss.item()}")
+                logger.info(f"Epoch {epoch}, iter {i}, loss: {loss.item()}")
 
         epoch_loss = epoch_loss / len(train_dataloader)
         epoch_accuracy = epoch_accuracy / len(train_set)
         
-        print(f"Epoch {epoch}, loss: {epoch_loss}, accuracy: {epoch_accuracy}")
+        logger.info(f"Epoch {epoch}, loss: {epoch_loss}, accuracy: {epoch_accuracy}")
         wandb.log({"epoch_train_loss": epoch_loss, "epoch_train_accuracy": epoch_accuracy})
 
         # Validation loop
@@ -112,9 +118,9 @@ def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
         statistics["val_accuracy"].append(val_accuracy)
 
         wandb.log({"val_loss": val_loss, "val_accuracy": val_accuracy})
-        print(f"Validation loss: {val_loss}, accuracy: {val_accuracy}")
+        logger.info(f"Validation loss: {val_loss}, accuracy: {val_accuracy}")
 
-    print("Training complete")
+    logger.info("Training complete")
     model_path = "models/model.pth"
     torch.save(model.state_dict(), model_path)
     fig, axs = plt.subplots(1, 2, figsize=(15, 5))
