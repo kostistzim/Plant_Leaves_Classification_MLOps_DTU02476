@@ -31,16 +31,3 @@ class PlantClassifier(torch.nn.Module):
         hidden = self.backbone(x)
         predictions = F.softmax(hidden, dim=1)
         return predictions
-
-
-# A quick test of the model
-if __name__ == "__main__":
-    # Create the model
-    model = PlantClassifier()
-
-    # Generate a batch of test images
-    test_image = torch.rand([64, 3, 300, 255])
-
-    # Compute the result
-    out = model(test_image)
-    print(out.shape)
