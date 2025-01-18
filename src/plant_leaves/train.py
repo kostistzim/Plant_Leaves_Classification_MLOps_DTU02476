@@ -34,9 +34,7 @@ def train(cfg: DictConfig) -> None:
     Takes the CNN model and performs the training process
 
             Parameters:
-                        batch_size (int): size of training batches
-                        epochs (int): number of training runs
-                        lr (float): learning rate of optimizer
+                        cfg: Configuration object fetched from hydra
 
     """
     params = cfg.experiment
