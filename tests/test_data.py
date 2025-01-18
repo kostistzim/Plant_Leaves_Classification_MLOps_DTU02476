@@ -1,5 +1,6 @@
-from plant_leaves.data import MyDataset
 from torch.utils.data import Dataset
+
+from plant_leaves.data import MyDataset
 
 
 def test_my_dataset():

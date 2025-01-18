@@ -7,20 +7,21 @@ import hydra
 import matplotlib.pyplot as plt
 import torch
 import wandb
-from config.logging_config import logger
 from dotenv import load_dotenv
-from model import PlantClassifier
 from omegaconf.dictconfig import DictConfig
 from torch.utils.data import DataLoader
 
 from plant_leaves import PROJECT_ROOT
 from plant_leaves.data import load_processed_data
+from plant_leaves.config.logging_config import logger
+from plant_leaves.model import PlantClassifier
 
 load_dotenv()
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 DATA_PATH = Path(os.getenv("DATA_PATH"))
 LOG_PREFIX = "TRAINING"
+
 
 
 @hydra.main(
