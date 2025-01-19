@@ -21,9 +21,11 @@ load_dotenv()
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 DATA_PATH = Path("data/processed/")
 LOG_PREFIX = "TRAINING"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 @hydra.main(
+    config_path=os.path.join(PROJECT_ROOT, "configs"),
     config_name="default_config.yaml",
     version_base=None,
 )
