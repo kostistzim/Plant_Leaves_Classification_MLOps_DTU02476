@@ -23,3 +23,9 @@ pre-commit==4.0.1
 # logging
 loguru==0.7.3
 loguru-config==0.1.0
+
+# gs
+google-api-python-client==2.159.0
+
+# for gsutil error
+proto-plus==1.24.0.dev1
