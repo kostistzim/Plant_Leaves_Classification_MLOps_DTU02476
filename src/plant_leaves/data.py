@@ -5,10 +5,9 @@ from typing import Tuple
 import kagglehub
 import torch
 import typer
+from config.logging_config import logger
 from PIL import Image
 from torchvision import transforms
-
-from plant_leaves.config.logging_config import logger
 
 data_typer = typer.Typer()
 LOG_PREFIX = "DATA-HANDLING"
@@ -155,7 +154,7 @@ def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int
     for folder_path in data_path.iterdir():
         for img_path in folder_path.iterdir():
             if img_path.suffix.lower() in [".jpg", ".jpeg", ".png"]:
-                category = "healthy" if "healthy" in img_path.name else "diseased"
+                category = "healthy" if "healthy" in folder_path.name else "diseased"
 
                 img = Image.open(img_path)
 
