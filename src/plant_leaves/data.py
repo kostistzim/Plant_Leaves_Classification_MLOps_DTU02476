@@ -198,7 +198,7 @@ def load_processed_data(
     logger.configure(extra={"prefix": LOG_PREFIX})
 
     logger.info(f"Loading processed data...")
-
+    logger.info(f"Searching for data at: {processed_data_path}")
     # Load the processed datasets and targets
     train_images = torch.load(processed_data_path / "train" / "datasets.pt", weights_only=True)
     train_target = torch.load(processed_data_path / "train" / "targets.pt", weights_only=True)

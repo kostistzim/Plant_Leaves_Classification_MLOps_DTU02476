@@ -1,0 +1,20 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build container image'
+  args: [
+    'build',
+    '.',
+    '-t',
+    'europe-west1-docker.pkg.dev/breathing-data/nitrogen/train_image',
+    '-f',
+    'dockerfiles/train.dockerfile'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push container image'
+  args: [
+    'push',
+    'europe-west1-docker.pkg.dev/breathing-data/nitrogen/train_image'
+  ]
+options:
+  logging: CLOUD_LOGGING_ONLY
+  env: ["DOCKER_BUILDKIT=1"]

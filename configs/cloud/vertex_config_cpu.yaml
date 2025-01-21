@@ -1,0 +1,10 @@
+# config_cpu.yaml
+workerPoolSpecs:
+    machineSpec:
+        machineType: n1-highmem-4
+    replica_count: 1
+    containerSpec:
+        imageUri: europe-west1-docker.pkg.dev/breathing-data/nitrogen/train_image
+        env:
+        - name: DATA_PATH
+          value: /gcs/oxygen-o2/data/processed/
