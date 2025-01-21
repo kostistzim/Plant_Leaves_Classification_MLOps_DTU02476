@@ -23,7 +23,6 @@ DATA_PATH = Path(os.getenv("DATA_PATH"))
 LOG_PREFIX = "TRAINING"
 
 
-
 @hydra.main(
     config_path=os.path.join(PROJECT_ROOT, "configs"),
     config_name="default_config.yaml",
