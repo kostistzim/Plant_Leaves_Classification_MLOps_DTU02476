@@ -3,7 +3,9 @@ from contextlib import asynccontextmanager
 from http import HTTPStatus
 from typing import AsyncGenerator, Dict
 
+import numpy as np
 import onnx
+import onnxruntime as ort
 import torch
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import HTMLResponse
@@ -28,7 +30,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     - None: Context manager for the lifespan of the application.
     """
     global model, feature_extractor, tokenizer, device, gen_kwargs
-    model = onnx.load(f"models/model.onnx")
+    model = onnx.load("models/model.onnx")
     onnx.checker.check_model(model)
     yield
 
@@ -67,7 +69,7 @@ def normalize(images: torch.Tensor) -> torch.Tensor:
     return (images - images.mean()) / images.std()
 
 
-async def preprocess_image(data: UploadFile) -> torch.Tensor:
+async def preprocess_image(data: UploadFile) -> np.ndarray:
     """
     Transforms an image file into a normalized tensor.
 
@@ -81,13 +83,14 @@ async def preprocess_image(data: UploadFile) -> torch.Tensor:
     img = Image.open(io.BytesIO(content))  # Use io.BytesIO for in-memory binary streams
     transform = transforms.Compose(
         [
-            transforms.Resize((224, 224)),  # Resize to 224x224 for most CNNs
+            transforms.Resize((288, 288)),  # Resize to 224x224 for most CNNs
             transforms.ToTensor(),  # Convert to tensor
         ]
     )
     tensor = transform(img)
     norm_tensor = normalize(tensor)
-    return norm_tensor
+    norm_tensor = torch.unsqueeze(norm_tensor, 0)
+    return norm_tensor.numpy()
 
 
 @app.get("/predict/", response_class=HTMLResponse)
@@ -126,12 +129,12 @@ async def predict(data: UploadFile = File(...)) -> Dict[str, str | HTTPStatus]:
     Returns:
     - Dict[str, str | HTTPStatus]: Dictionary containing the prediction label and status code.
     """
-    tensor = await preprocess_image(data)
+    image_array = await preprocess_image(data)
 
-    model.eval()
-    with torch.no_grad():  # Avoid tracking gradients during inference
-        y_pred = model(torch.unsqueeze(tensor, 0))
-    prediction_idx = y_pred.argmax(dim=1)
+    ort_sess = ort.InferenceSession("models/model.onnx")
+    y_pred = ort_sess.run(None, {"input": image_array})
+    print(y_pred)
+    prediction_idx = y_pred[0][0].argmax(0)
     label = "healthy" if prediction_idx.item() == 0 else "diseased"
     print(f"y_pred: {y_pred} label: {label}")
     response = {
