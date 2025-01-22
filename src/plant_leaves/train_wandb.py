@@ -1,20 +1,17 @@
+import os
+from datetime import datetime
 from pathlib import Path
 from typing import Dict
 
 import matplotlib.pyplot as plt
 import torch
 import wandb
+from dotenv import load_dotenv
+from torch.utils.data import DataLoader
 
 from plant_leaves.config.logging_config import logger
-from plant_leaves.model import PlantClassifier
-from omegaconf.dictconfig import DictConfig
-from torch.utils.data import DataLoader
-from datetime import datetime
-
 from plant_leaves.data import load_processed_data
-
-import os
-from dotenv import load_dotenv
+from plant_leaves.model import PlantClassifier
 
 load_dotenv()
 
@@ -39,10 +36,12 @@ def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
     wandb_entity = os.getenv("WANDB_ENTITY")
 
     if not all([wandb_api_key, wandb_project, wandb_entity]):
-        logger.info("Please set WANDB_API_KEY, WANDB_PROJECT, and WANDB_ENTITY in the environment variables") # logged as DEBUG
-        mode="disabled"
+        logger.info(
+            "Please set WANDB_API_KEY, WANDB_PROJECT, and WANDB_ENTITY in the environment variables"
+        )  # logged as DEBUG
+        mode = "disabled"
     else:
-        logger.info(f"Logging in with api key to project {wandb_project} for entity {wandb_entity}") # logged as DEBUG
+        logger.info(f"Logging in with api key to project {wandb_project} for entity {wandb_entity}")  # logged as DEBUG
         wandb.login(key=wandb_api_key)
         mode = "online"
 
@@ -50,11 +49,11 @@ def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
     run_name = f"train_{current_time}_lr_{lr}_bs_{batch_size}_epochs_{epochs}"
     run = wandb.init(
         project=wandb_project,  # Group all experiments for this project
-        entity=wandb_entity,             # Specify the team or user account
-        job_type="train",             # Specify the type of job
+        entity=wandb_entity,  # Specify the team or user account
+        job_type="train",  # Specify the type of job
         name=run_name,
         config={"lr": lr, "batch_size": batch_size, "epochs": epochs},
-        mode=mode
+        mode=mode,
     )
 
     model = PlantClassifier().to(DEVICE)
@@ -70,10 +69,8 @@ def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    statistics: Dict[str, list[float]] = {
-        "train_loss": [], "train_accuracy": [], "val_loss": [], "val_accuracy": []
-    }
-    
+    statistics: Dict[str, list[float]] = {"train_loss": [], "train_accuracy": [], "val_loss": [], "val_accuracy": []}
+
     for epoch in range(epochs):
         model.train()
         epoch_loss, epoch_accuracy = 0.0, 0.0
@@ -96,7 +93,7 @@ def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
 
         epoch_loss = epoch_loss / len(train_dataloader)
         epoch_accuracy = epoch_accuracy / len(train_set)
-        
+
         logger.info(f"Epoch {epoch}, loss: {epoch_loss}, accuracy: {epoch_accuracy}")
         wandb.log({"epoch_train_loss": epoch_loss, "epoch_train_accuracy": epoch_accuracy})
 
@@ -141,8 +138,9 @@ def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
     )
     artifact.add_file(model_path)
     run.log_artifact(artifact)
-        
+
     run.finish()
+
 
 if __name__ == "__main__":
     train()

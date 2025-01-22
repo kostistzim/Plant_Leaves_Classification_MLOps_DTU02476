@@ -7,7 +7,7 @@ name = "plant_leaves"
 version = "0.0.1"
 description = "An MLOps (DTU02476) project work."
 authors = [
-  { name = "Group 96", email = "your@email.com" },
+  { name = "Group 96", email = "michalisdikaiopoulos@gmail.com" },
 ]
 license = { file = "LICENSE" }
 keywords = ["machine learning", "MLOps"]

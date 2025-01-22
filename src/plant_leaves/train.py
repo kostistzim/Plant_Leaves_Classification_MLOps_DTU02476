@@ -7,14 +7,14 @@ import hydra
 import matplotlib.pyplot as plt
 import torch
 import wandb
-from config.logging_config import logger
 from dotenv import load_dotenv
-from model import PlantClassifier
 from omegaconf.dictconfig import DictConfig
 from torch.utils.data import DataLoader
 
 from plant_leaves import PROJECT_ROOT
 from plant_leaves.data import load_processed_data
+from plant_leaves.config.logging_config import logger
+from plant_leaves.model import PlantClassifier
 
 load_dotenv()
 
@@ -33,9 +33,7 @@ def train(cfg: DictConfig) -> None:
     Takes the CNN model and performs the training process
 
             Parameters:
-                        batch_size (int): size of training batches
-                        epochs (int): number of training runs
-                        lr (float): learning rate of optimizer
+                        cfg: Configuration object fetched from hydra
 
     """
     params = cfg.experiment

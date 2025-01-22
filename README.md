@@ -4,11 +4,11 @@ An MLOps (DTU02476) project work.
 
 ## Group 96 - Team Members
 
-Kostis Tzimoulias - s242796@dtu.dk  
-Xhino Mullaymeri - s223481@dtu.dk  
-Dimitris Papantzikos - s242798@dtu.dk  
-Jan Šulíček - s246733@dtu.dk  
-Michail Dikaiopoulos - s242816@dtu.dk  
+Kostis Tzimoulias - s242796@dtu.dk
+Xhino Mullaymeri - s223481@dtu.dk
+Dimitris Papantzikos - s242798@dtu.dk
+Jan Šulíček - s246733@dtu.dk
+Michail Dikaiopoulos - s242816@dtu.dk
 
 ## Goal
 
