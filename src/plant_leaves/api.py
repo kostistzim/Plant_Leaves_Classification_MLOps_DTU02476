@@ -1,15 +1,19 @@
+import io
 from contextlib import asynccontextmanager
-from typing import Dict, AsyncGenerator
+from http import HTTPStatus
+from typing import AsyncGenerator, Dict
+
 import torch
 from fastapi import FastAPI, File, UploadFile
-from http import HTTPStatus
-from PIL import Image
 from fastapi.responses import HTMLResponse
+from PIL import Image
 from torchvision import transforms
-from model import PlantClassifier
-import io
 
-DEVICE: torch.device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+from plant_leaves.model import PlantClassifier
+
+DEVICE: torch.device = torch.device(
+    "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+)
 LOG_PREFIX: str = "TESTING"
 
 
@@ -27,7 +31,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     global model, feature_extractor, tokenizer, device, gen_kwargs
     print("Loading model")
     model = PlantClassifier().to(DEVICE)
-    model.load_state_dict(torch.load("../../models/model.pth"))
+    model.load_state_dict(torch.load("models/model.pth"))
     model.to(DEVICE)
     yield
 
