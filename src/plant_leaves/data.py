@@ -6,7 +6,8 @@ import kagglehub
 import torch
 import typer
 from config.logging_config import logger
-from PIL import Image
+from PIL import image
+
 from torchvision import transforms
 
 data_typer = typer.Typer()
