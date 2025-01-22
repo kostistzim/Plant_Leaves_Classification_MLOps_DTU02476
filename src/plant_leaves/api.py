@@ -3,13 +3,12 @@ from contextlib import asynccontextmanager
 from http import HTTPStatus
 from typing import AsyncGenerator, Dict
 
+import onnx
 import torch
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import HTMLResponse
 from PIL import Image
 from torchvision import transforms
-
-from plant_leaves.model import PlantClassifier
 
 DEVICE: torch.device = torch.device(
     "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
@@ -29,10 +28,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     - None: Context manager for the lifespan of the application.
     """
     global model, feature_extractor, tokenizer, device, gen_kwargs
-    print("Loading model")
-    model = PlantClassifier().to(DEVICE)
-    model.load_state_dict(torch.load("models/model.pth"))
-    model.to(DEVICE)
+    model = onnx.load(f"models/model.onnx")
+    onnx.checker.check_model(model)
     yield
 
     print("Cleaning up")

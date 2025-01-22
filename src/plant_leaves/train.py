@@ -13,14 +13,14 @@ from model import PlantClassifier
 from omegaconf.dictconfig import DictConfig
 from torch.utils.data import DataLoader
 
-from data import load_processed_data
+from plant_leaves import PROJECT_ROOT
+from plant_leaves.data import load_processed_data
 
 load_dotenv()
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 DATA_PATH = Path(os.getenv("DATA_PATH"))
 LOG_PREFIX = "TRAINING"
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 @hydra.main(
@@ -129,14 +129,22 @@ def train(cfg: DictConfig) -> None:
         logger.info(f"Validation loss: {val_loss}, accuracy: {val_accuracy}")
 
     logger.info("Training complete")
-    model_path = "models/model.pth"
+    model_path = f"{PROJECT_ROOT}/models/model.pth"
     torch.save(model.state_dict(), model_path)
+    onnx_model_path = f"{PROJECT_ROOT}/models/model.onnx"
+    torch.onnx.export(
+        model,
+        (img[0].unsqueeze(0),),
+        onnx_model_path,
+        input_names=["input"],  # the model's input names
+        output_names=["output"],
+    )
     fig, axs = plt.subplots(1, 2, figsize=(15, 5))
     axs[0].plot(statistics["train_loss"])
     axs[0].set_title("Train loss")
     axs[1].plot(statistics["train_accuracy"])
     axs[1].set_title("Train accuracy")
-    fig_path = "reports/figures/training_statistics.png"
+    fig_path = f"{PROJECT_ROOT}/reports/figures/training_statistics.png"
     fig.savefig(fig_path)
     run.log({"training_statistics_via_matplotlib": wandb.Image(fig_path)})
 
@@ -148,6 +156,7 @@ def train(cfg: DictConfig) -> None:
         metadata={"accuracy": statistics["train_accuracy"][-1], "loss": statistics["train_loss"][-1]},
     )
     artifact.add_file(model_path)
+    artifact.add_file(onnx_model_path)
     run.log_artifact(artifact)
 
     run.finish()

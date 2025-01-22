@@ -15,3 +15,6 @@ uvicorn==0.34.0
 fastapi==0.115.6
 requests==2.32.3
 python-multipart==0.0.20
+onnx==1.17.0
+onnxruntime==1.20.1
+onnxscript==0.1.0.dev20250122
