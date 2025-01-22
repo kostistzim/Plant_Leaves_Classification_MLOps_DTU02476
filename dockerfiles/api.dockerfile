@@ -10,8 +10,11 @@ COPY requirements.txt requirements.txt
 COPY requirements_dev.txt requirements_dev.txt
 COPY README.md README.md
 COPY pyproject.toml pyproject.toml
+COPY models models/
 
-RUN pip install -r requirements.txt --no-cache-dir --verbose
+WORKDIR /
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements_dev.txt
 RUN pip install . --no-deps --no-cache-dir --verbose
 
-ENTRYPOINT ["uvicorn", "src/plant_leaves/api:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["uvicorn", "src.plant_leaves.api:app", "--host", "0.0.0.0", "--port", "8000"]
