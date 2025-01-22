@@ -4,6 +4,7 @@ from typing import Any
 
 import timm
 import torch
+import torch.nn.functional as F
 
 
 class PlantClassifier(torch.nn.Module):
@@ -28,7 +29,8 @@ class PlantClassifier(torch.nn.Module):
             Any: predictions shape [batch_size n_classes]
         """
         hidden = self.backbone(x)
-        return hidden
+        predictions = F.softmax(hidden, dim=1)
+        return predictions
 
 
 # A quick test of the model
