@@ -18,7 +18,7 @@ st.set_page_config(
 st.title("🌿 Plant Leaves | Health Classification")
 
 # File uploader for image input
-uploaded_file = st.file_uploader("Upload a leaf image", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Upload a leaf image", type=["jpg", "jpeg"])
 
 # Placeholder for displaying the result
 result_placeholder = st.empty()
@@ -30,7 +30,7 @@ def image_to_bytes(image: Image.Image, format: str = "JPEG") -> bytes:
 
     Args:
         image (Image.Image): The image to convert.
-        format (str): The format to save the image in (e.g., "JPEG", "PNG").
+        format (str): The format to save the image in (e.g., "JPEG").
 
     Returns:
         bytes: The byte representation of the image.
