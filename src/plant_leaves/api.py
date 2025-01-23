@@ -1,4 +1,5 @@
 import io
+import os
 from contextlib import asynccontextmanager
 from http import HTTPStatus
 from typing import AsyncGenerator, Dict
@@ -137,15 +138,15 @@ async def predict(data: UploadFile = File(...)) -> PredictionResponse:
         try:
             image_array = await preprocess_image(data)
             review_summary.observe(image_array.size)
-
-            ort_sess = ort.InferenceSession("models/model.onnx")
+            model_path = os.getenv("MODEL_PATH", "models/model.onnx")
+            ort_sess = ort.InferenceSession(model_path)
             y_pred = ort_sess.run(None, {"input": image_array})
             prediction_idx = y_pred[0][0].argmax(0)
             label = "healthy" if prediction_idx.item() == 0 else "diseased"
             confidence = y_pred[0][0][prediction_idx].item()
             print(y_pred, prediction_idx, label, confidence)
             return PredictionResponse(image_label=label, confidence=confidence, status_code=200)
-
+        
         except Exception as e:
             error_counter.inc()
             print(f"Error: {e}")

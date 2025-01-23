@@ -1,0 +1,13 @@
+# Exclude large or unnecessary files
+*.log
+*.csv
+*.json
+*.tar
+*.zip
+*.gz
+node_modules/
+.venv/
+__pycache__/
+data/
+tmp/
+.dvc/
