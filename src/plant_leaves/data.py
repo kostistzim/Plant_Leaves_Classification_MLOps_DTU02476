@@ -5,10 +5,10 @@ from typing import Tuple
 import kagglehub
 import torch
 import typer
-from config.logging_config import logger
-from PIL import image
-
+from PIL import Image
 from torchvision import transforms
+
+from plant_leaves.config.logging_config import logger
 
 data_typer = typer.Typer()
 LOG_PREFIX = "DATA-HANDLING"
