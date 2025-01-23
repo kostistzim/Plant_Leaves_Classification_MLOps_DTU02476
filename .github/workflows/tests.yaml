@@ -34,6 +34,9 @@ jobs:
           pip install -r requirements_dev.txt
           pip list
 
+      - name: Pull data
+        run: |
+          dvc pull --no-run-cache
 
       - name: Run tests & coverage
         run: |
