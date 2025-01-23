@@ -35,11 +35,25 @@ jobs:
           pip install -e .
           pip list
 
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCLOUD_SERVICE_KEY }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: breathing-data
+
+      - name: Download from GCS
+        run: |
+          gsutil cp gs://oxygen-o2/data/model.onnx ./models/
+
       - name: Run tests & coverage
         run: |
           coverage run -m pytest tests/
           coverage report -m -i
-      
+
       - name: Run Performance tests
         run: |
           uvicorn --reload --port 8000 src.plant_leaves.api:app &
