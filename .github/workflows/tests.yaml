@@ -56,6 +56,7 @@ jobs:
 
       - name: Run Performance tests
         run: |
+          mkdir reports/locust_results
           uvicorn --reload --port 8000 src.plant_leaves.api:app &
           UVICORN_PID=$!
           # Wait for uvicorn to start by checking the port
@@ -68,7 +69,7 @@ jobs:
       - name: Upload Test Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Test-Artifacts
+          name: Test-Artifacts-${{ matrix.operating-system }}-${{ matrix.python-version }}
           path: reports/
 
   build:
