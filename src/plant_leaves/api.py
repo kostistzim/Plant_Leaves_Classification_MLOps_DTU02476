@@ -1,23 +1,45 @@
 import io
 from contextlib import asynccontextmanager
 from http import HTTPStatus
-from typing import AsyncGenerator, Dict, Union
+from typing import AsyncGenerator, Dict
 
 import numpy as np
 import onnx
 import onnxruntime as ort
 import torch
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import HTMLResponse
 from PIL import Image
 from pydantic import BaseModel
 from torchvision import transforms
+from prometheus_client import Counter, Histogram, Summary, make_asgi_app, CollectorRegistry
 
 DEVICE: torch.device = torch.device(
     "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 )
 LOG_PREFIX: str = "TESTING"
 
+# Prometheus metrics
+prometheus_registry = CollectorRegistry()
+error_counter = Counter(
+    "prediction_error",
+    "Number of prediction errors",
+    registry=prometheus_registry
+)
+request_counter = Counter(
+    "prediction_requests",
+    "Number of prediction requests",
+    registry=prometheus_registry
+)
+request_latency = Histogram(
+    "prediction_latency_seconds",
+    "Prediction latency in seconds",
+    registry=prometheus_registry
+)
+review_summary = Summary(
+    "review_length_summary",
+    "Review length summary",
+    registry=prometheus_registry
+)
 
 class PredictionResponse(BaseModel):
     image_label: str
@@ -46,6 +68,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app: FastAPI = FastAPI(lifespan=lifespan)
+app.mount("/metrics", make_asgi_app(registry=prometheus_registry))
 
 
 @app.get("/")
@@ -109,17 +132,21 @@ async def predict(data: UploadFile = File(...)) -> PredictionResponse:
     """
     Predict whether the image is healthy or diseased.
     """
-    try:
-        image_array = await preprocess_image(data)
+    request_counter.inc()
+    with request_latency.time():
+        try:
+            image_array = await preprocess_image(data)
+            review_summary.observe(image_array.size)
 
-        ort_sess = ort.InferenceSession("models/model.onnx")
-        y_pred = ort_sess.run(None, {"input": image_array})
-        prediction_idx = y_pred[0][0].argmax(0)
-        label = "healthy" if prediction_idx.item() == 0 else "diseased"
-        confidence = y_pred[0][0][prediction_idx].item()
-        print(y_pred, prediction_idx, label, confidence)
-        return PredictionResponse(image_label=label, confidence=confidence, status_code=200)
+            ort_sess = ort.InferenceSession("models/model.onnx")
+            y_pred = ort_sess.run(None, {"input": image_array})
+            prediction_idx = y_pred[0][0].argmax(0)
+            label = "healthy" if prediction_idx.item() == 0 else "diseased"
+            confidence = y_pred[0][0][prediction_idx].item()
+            print(y_pred, prediction_idx, label, confidence)
+            return PredictionResponse(image_label=label, confidence=confidence, status_code=200)
 
-    except Exception as e:
-        print(f"Error: {e}")
-        return PredictionResponse(image_label="error", confidence=0.0, status_code=500)
+        except Exception as e:
+            error_counter.inc()
+            print(f"Error: {e}")
+            return PredictionResponse(image_label="error", confidence=0.0, status_code=500)
