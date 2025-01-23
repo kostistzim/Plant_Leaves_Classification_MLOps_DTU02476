@@ -14,10 +14,14 @@ data_typer = typer.Typer()
 LOG_PREFIX = "DATA-HANDLING"
 
 
+def get_kaggle_dataset_url():
+    return "csafrit2/plant-leaves-for-image-classification"
+
+
 @data_typer.command()
 @logger.catch()
 def download_dataset(
-    dataset: str = typer.Argument("csafrit2/plant-leaves-for-image-classification", help="Kaggle dataset identifier"),
+    dataset: str = typer.Argument(get_kaggle_dataset_url(), help="Kaggle dataset identifier"),
     destination: str = typer.Argument("data/raw", help="Destination folder for the dataset"),
 ) -> None:
     logger.configure(extra={"prefix": LOG_PREFIX})

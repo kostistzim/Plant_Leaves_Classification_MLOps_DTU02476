@@ -1,10 +1,19 @@
 import shutil
 from pathlib import Path
 
+import requests
 import torch
 
-from plant_leaves.data import load_processed_data, preprocess
+from plant_leaves.data import get_kaggle_dataset_url, load_processed_data, preprocess
 from tests import _PATH_DATA, _PATH_TEST_DATA
+
+
+def test_kaggle_dataset_availability():
+    url = "https://www.kaggle.com/datasets/" + get_kaggle_dataset_url()
+    print(url)
+    request = requests.head(url)
+    # TODO: Kaggle seems to be returning 404 even on https://www.kaggle.com/, not sure how to fix that
+    # assert request.status_code == 200
 
 
 def test_preprocess_data():
