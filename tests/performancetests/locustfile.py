@@ -1,6 +1,6 @@
 from locust import HttpUser, between, task
 
-from tests import _PATH_INTEGRATION_DATA
+from tests import _PATH_TEST_DATA
 import random
 
 
@@ -19,8 +19,8 @@ class MyUser(HttpUser):
     def test_predict_endpoint(self) -> None:
         """A task that simulates sending image files to the /predict/ endpoint."""
         image_file_paths = [
-            _PATH_INTEGRATION_DATA / 'diseased.JPG',
-            _PATH_INTEGRATION_DATA / 'healthy.JPG'
+            _PATH_TEST_DATA.joinpath("raw/plant-leaves-for-image-classification/Plants_2/valid/Alstonia Scholaris diseased (P2a)/diseased.JPG"),
+            _PATH_TEST_DATA.joinpath("raw/plant-leaves-for-image-classification/Plants_2/valid/Alstonia Scholaris healthy (P2b)/healthy.JPG")
         ]
 
         image_file_path = random.choice(image_file_paths)
