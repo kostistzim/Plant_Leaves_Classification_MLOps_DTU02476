@@ -39,6 +39,23 @@ jobs:
         run: |
           coverage run -m pytest tests/
           coverage report -m -i
+      
+      - name: Run Performance tests
+        run: |
+          uvicorn --reload --port 8000 src.plant_leaves.api:app &
+          UVICORN_PID=$!
+          # Wait for uvicorn to start by checking the port
+          sleep 10
+
+          locust -f tests/performancetests/locustfile.py --headless --users 10 --spawn-rate 1 --run-time 10s --host=http://localhost:8000 --csv=reports/locust_results/
+          echo "Stopping uvicorn..."
+          kill $UVICORN_PID
+  
+      - name: Upload Test Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Test-Artifacts
+          path: reports/
 
   build:
     needs: test
