@@ -3,11 +3,12 @@ from pathlib import Path
 from typing import Tuple
 
 import kagglehub
+import numpy as np
 import torch
 import typer
 from config.logging_config import logger
-from PIL import image
-
+from PIL import Image
+from torch.utils.data import Subset
 from torchvision import transforms
 
 data_typer = typer.Typer()
@@ -95,33 +96,34 @@ def preprocess(
     try:
         if not raw_data_path.exists():
             logger.info(f"The raw data folder does not exist. Downloading the dataset...")
-            download_dataset()  # TODO: Add arguments properly. Issue: raw_data_path links to data folder and not to coockie cutter raw data folder.
+            download_dataset()  # TODO: Add arguments properly. Issue: raw_data_path links to data folder and not to cookie cutter raw data folder.
     except Exception as e:  # If the download failed, exit.
         logger.error("Download failed. Exiting...")
         exit()
 
     logger.info(f"Preprocessing data...")
     for dataset_path in raw_data_path.iterdir():
-        if dataset_path.name == "images to predict":
+        # Skip hidden folders and the "images to predict" folder
+        if dataset_path.name.startswith(".") or dataset_path.name == "images to predict":
+            continue
+        # Ensure it is a directory
+        if not dataset_path.is_dir():
             continue
         # Check if the folder exists and if not create it
-        if not os.path.exists(os.path.join(output_folder, dataset_path.name)):
-            os.makedirs(os.path.join(output_folder, dataset_path.name))
+        output_subfolder = output_folder / dataset_path.name
+        if not output_subfolder.exists():
+            output_subfolder.mkdir(parents=True)
 
-        dataset_path = Path(dataset_path)
-        output_path = Path(os.path.join(output_folder, dataset_path.name))
-        logger.info(f"Dataset path : {dataset_path} \n Output path : {output_path}")
-        if dataset_path.name == "train":
-            main_preprocessing(dataset_path, output_path, dimensions=dimensions)
-        else:
-            main_preprocessing(dataset_path, output_path)
+        logger.info(f"Dataset path : {dataset_path} \n Output path : {output_subfolder}")
+        # Call the preprocessing function
+        main_preprocessing(dataset_path, output_subfolder)
 
 
 def normalize(images: torch.Tensor) -> torch.Tensor:
     """Normalize images as (X - mean(X)) / std(X).
 
     Parameters:
-    - images: Tensor of shape (N, 3, 244 or 288, 244 or 288)
+    - images: Tensor of shape (N, 3, 240, 240)
 
     Returns:
     - Normalized images
@@ -129,7 +131,7 @@ def normalize(images: torch.Tensor) -> torch.Tensor:
     return (images - images.mean()) / images.std()
 
 
-def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int, int] = (288, 288)) -> None:
+def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int, int] = (240, 240)) -> None:
     """
     Output two folders for each category in the dataset respectively.
 
@@ -145,29 +147,40 @@ def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int
 
     transform = transforms.Compose(
         [
-            transforms.Resize(dimensions),  # Resize to 224x224 for most CNNs
-            transforms.ToTensor(),  # Convert to tensor
-            # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
+            transforms.Resize(dimensions),
+            transforms.ToTensor(),
         ]
     )
     datasets_pt_l, targets_pt_l = [], []
+
     # Extract images to output folders
     for folder_path in data_path.iterdir():
+        if not folder_path.is_dir() or folder_path.name.startswith("."):
+            continue  # Skip files and hidden folders
+
         for img_path in folder_path.iterdir():
+            if not img_path.is_file() or img_path.name.startswith("."):
+                continue  # Skip hidden files and non-image files
+
             if img_path.suffix.lower() in [".jpg", ".jpeg", ".png"]:
                 category = "healthy" if "healthy" in folder_path.name else "diseased"
 
-                img = Image.open(img_path)
+                try:
+                    img = Image.open(img_path)
 
-                # Apply transformations
-                tensor = transform(img)
+                    # Apply transformations
+                    tensor = transform(img)
 
-                if category == "healthy":
-                    datasets_pt_l.append(tensor)
-                    targets_pt_l.append(0)
-                else:
-                    datasets_pt_l.append(tensor)
-                    targets_pt_l.append(1)
+                    if category == "healthy":
+                        datasets_pt_l.append(tensor)
+                        targets_pt_l.append(0)
+                    else:
+                        datasets_pt_l.append(tensor)
+                        targets_pt_l.append(1)
+
+                except Exception as e:
+                    logger.error(f"Error processing image {img_path}: {e}")
+                    continue
 
     # Transform lists to tensors
     datasets_pt = torch.stack(datasets_pt_l)
@@ -175,6 +188,9 @@ def main_preprocessing(data_path: Path, output_path: Path, dimensions: Tuple[int
 
     # Normalize the datasets
     datasets_pt = normalize(datasets_pt)
+
+    # Ensure the output directory exists
+    output_path.mkdir(parents=True, exist_ok=True)
 
     # Save the datasets and targets as .pt files
     torch.save(datasets_pt, output_path / "datasets.pt")
@@ -213,8 +229,27 @@ def load_processed_data(
     test = torch.utils.data.TensorDataset(test_images, test_target)
     validation = torch.utils.data.TensorDataset(validation_images, validation_target)
 
-    logger.info(f"Data loaded successfully")
+    # Create the joint datasets with targets
+    train = torch.utils.data.TensorDataset(train_images, train_target)
+    test = torch.utils.data.TensorDataset(test_images, test_target)
+    validation = torch.utils.data.TensorDataset(validation_images, validation_target)
 
+    # # Set a random seed for reproducibility
+    # np.random.seed(42)
+
+    # # TODO: Remove this function after checking the code
+    # # Function to create a 5% subset
+    # def create_subset(dataset, fraction=0.05):
+    #     subset_size = int(fraction * len(dataset))  # Calculate 5% of the dataset size
+    #     indices = np.random.choice(len(dataset), subset_size, replace=False)  # Randomly select indices
+    #     return Subset(dataset, indices)
+
+    # # Create 5% subsets
+    # train_subset = create_subset(train)
+    # test_subset = create_subset(test)
+    # validation_subset = create_subset(validation)
+
+    # return train_subset, test_subset, validation_subset #TODO: Replace with train, test, validation after checking the code
     return train, test, validation
 
 
