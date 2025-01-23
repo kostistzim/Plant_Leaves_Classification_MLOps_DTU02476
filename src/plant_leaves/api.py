@@ -8,14 +8,43 @@ import onnx
 import onnxruntime as ort
 import torch
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import HTMLResponse
 from PIL import Image
+from pydantic import BaseModel
 from torchvision import transforms
+from prometheus_client import Counter, Histogram, Summary, make_asgi_app, CollectorRegistry
 
 DEVICE: torch.device = torch.device(
     "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 )
 LOG_PREFIX: str = "TESTING"
+
+# Prometheus metrics
+prometheus_registry = CollectorRegistry()
+error_counter = Counter(
+    "prediction_error",
+    "Number of prediction errors",
+    registry=prometheus_registry
+)
+request_counter = Counter(
+    "prediction_requests",
+    "Number of prediction requests",
+    registry=prometheus_registry
+)
+request_latency = Histogram(
+    "prediction_latency_seconds",
+    "Prediction latency in seconds",
+    registry=prometheus_registry
+)
+review_summary = Summary(
+    "review_length_summary",
+    "Review length summary",
+    registry=prometheus_registry
+)
+
+class PredictionResponse(BaseModel):
+    image_label: str
+    confidence: float
+    status_code: int
 
 
 @asynccontextmanager
@@ -29,16 +58,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     Yields:
     - None: Context manager for the lifespan of the application.
     """
-    global model, feature_extractor, tokenizer, device, gen_kwargs
+    global model
     model = onnx.load("models/model.onnx")
     onnx.checker.check_model(model)
     yield
 
     print("Cleaning up")
-    del model, feature_extractor, tokenizer, device, gen_kwargs
+    del model
 
 
 app: FastAPI = FastAPI(lifespan=lifespan)
+app.mount("/metrics", make_asgi_app(registry=prometheus_registry))
 
 
 @app.get("/")
@@ -61,7 +91,7 @@ def normalize(images: torch.Tensor) -> torch.Tensor:
     Normalize images as (X - mean(X)) / std(X).
 
     Parameters:
-    - images: Tensor of shape (N, 3, 244 or 288, 244 or 288).
+    - images: Tensor of shape (N, 3, 240, 240).
 
     Returns:
     - torch.Tensor: Normalized tensor of images.
@@ -79,66 +109,44 @@ async def preprocess_image(data: UploadFile) -> np.ndarray:
     Returns:
     - torch.Tensor: Normalized tensor representation of the image.
     """
-    content = await data.read()
-    img = Image.open(io.BytesIO(content))  # Use io.BytesIO for in-memory binary streams
+
+    contents = await data.read()
+    img = Image.open(io.BytesIO(contents))
+
+    # Use io.BytesIO for in-memory binary streams
     transform = transforms.Compose(
         [
-            transforms.Resize((288, 288)),  # Resize to 224x224 for most CNNs
+            transforms.Resize((240, 240)),  # TODO: Resize to 240x240 after re-training the model
             transforms.ToTensor(),  # Convert to tensor
         ]
     )
     tensor = transform(img)
     norm_tensor = normalize(tensor)
     norm_tensor = torch.unsqueeze(norm_tensor, 0)
+
     return norm_tensor.numpy()
 
 
-@app.get("/predict/", response_class=HTMLResponse)
-async def get_form() -> str:
-    """
-    Render an HTML form for image upload.
-
-    Returns:
-    - str: HTML form as a string.
-    """
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Upload Image</title>
-    </head>
-    <body>
-        <h1>Upload Image for Prediction</h1>
-        <form action="/predict/" method="post" enctype="multipart/form-data">
-            <input type="file" name="data" accept="image/*">
-            <button type="submit">Upload</button>
-        </form>
-    </body>
-    </html>
-    """
-
-
-@app.post("/predict/")
-async def predict(data: UploadFile = File(...)) -> Dict[str, str | HTTPStatus]:
+@app.post("/predict/", response_model=PredictionResponse)
+async def predict(data: UploadFile = File(...)) -> PredictionResponse:
     """
     Predict whether the image is healthy or diseased.
-
-    Parameters:
-    - data: Uploaded image file.
-
-    Returns:
-    - Dict[str, str | HTTPStatus]: Dictionary containing the prediction label and status code.
     """
-    image_array = await preprocess_image(data)
+    request_counter.inc()
+    with request_latency.time():
+        try:
+            image_array = await preprocess_image(data)
+            review_summary.observe(image_array.size)
 
-    ort_sess = ort.InferenceSession("models/model.onnx")
-    y_pred = ort_sess.run(None, {"input": image_array})
-    print(y_pred)
-    prediction_idx = y_pred[0][0].argmax(0)
-    label = "healthy" if prediction_idx.item() == 0 else "diseased"
-    print(f"y_pred: {y_pred} label: {label}")
-    response = {
-        "image_label": label,
-        "status-code": HTTPStatus.OK,
-    }
-    return response
+            ort_sess = ort.InferenceSession("models/model.onnx")
+            y_pred = ort_sess.run(None, {"input": image_array})
+            prediction_idx = y_pred[0][0].argmax(0)
+            label = "healthy" if prediction_idx.item() == 0 else "diseased"
+            confidence = y_pred[0][0][prediction_idx].item()
+            print(y_pred, prediction_idx, label, confidence)
+            return PredictionResponse(image_label=label, confidence=confidence, status_code=200)
+
+        except Exception as e:
+            error_counter.inc()
+            print(f"Error: {e}")
+            return PredictionResponse(image_label="error", confidence=0.0, status_code=500)
