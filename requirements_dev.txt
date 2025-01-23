@@ -39,3 +39,7 @@ streamlit==1.41.1
 
 # monitoring
 prometheus-client==0.21.1
+
+# api testing
+locust==2.32.6
+httpx==0.28.1
