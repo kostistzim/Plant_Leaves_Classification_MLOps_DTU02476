@@ -185,3 +185,9 @@ models/
 # Hydra output
 outputs/
 /data
+
+# WandB local outputs
+wandb/
+
+# Ignore figures
+reports/figures/
