@@ -1,0 +1,20 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build backend container image'
+  args: [
+    'build',
+    '.',
+    '-t',
+    'europe-west1-docker.pkg.dev/breathing-data/nitrogen/backend_image',
+    '-f',
+    'dockerfiles/api.dockerfile'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push backend container image'
+  args: [
+    'push',
+    'europe-west1-docker.pkg.dev/breathing-data/nitrogen/backend_image'
+  ]
+options:
+  logging: CLOUD_LOGGING_ONLY
+  env: ["DOCKER_BUILDKIT=1"]

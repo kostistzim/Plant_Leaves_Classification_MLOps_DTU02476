@@ -1,4 +1,5 @@
 import io
+import os
 import warnings
 
 import requests
@@ -44,7 +45,8 @@ def image_to_bytes(image: Image.Image, format: str = "JPEG") -> bytes:
 def classify_leaf(image: Image.Image):
     # Perform model inference (example using a hypothetical API)
     image = image_to_bytes(image)
-    response = requests.post("http://backend:8000/predict", files={"data": image})
+    endpoint = os.getenv("BACKEND_URI", "http://backend:8000")
+    response = requests.post(f"{endpoint}/predict", files={"data": image})
     try:
         prediction = response.json()  # Attempt to decode JSON
     except requests.exceptions.JSONDecodeError:
