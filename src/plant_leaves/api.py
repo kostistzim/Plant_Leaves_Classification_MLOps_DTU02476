@@ -9,6 +9,8 @@ import onnx
 import onnxruntime as ort
 import torch
 from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from PIL import Image
 from pydantic import BaseModel
 from torchvision import transforms
@@ -60,7 +62,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     - None: Context manager for the lifespan of the application.
     """
     global model
-    model = onnx.load("models/model.onnx")
+    model_path = os.getenv("MODEL_PATH", "models/model.onnx")
+    model = onnx.load(model_path)
     onnx.checker.check_model(model)
     yield
 
@@ -70,6 +73,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app: FastAPI = FastAPI(lifespan=lifespan)
 app.mount("/metrics", make_asgi_app(registry=prometheus_registry))
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # Replace "*" with your frontend URL for stricter control
+#     allow_credentials=True,
+#     allow_methods=["*"],  # Allow all HTTP methods
+#     allow_headers=["*"],  # Allow all headers
+# )
 
 
 @app.get("/")
