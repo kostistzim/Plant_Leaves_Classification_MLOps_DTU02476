@@ -38,4 +38,4 @@ dvc-gs==3.0.1
 streamlit==1.41.1
 
 # monitoring
-prometheus-client=0.21.1
+prometheus-client==0.21.1

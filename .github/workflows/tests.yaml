@@ -32,13 +32,13 @@ jobs:
           python -m pip install -U pip setuptools wheel
           pip install -r requirements.txt
           pip install -r requirements_dev.txt
+          pip install -e .
           pip list
-
 
       - name: Run tests & coverage
         run: |
           coverage run -m pytest tests/
-          coverage report -m
+          coverage report -m -i
 
   build:
     needs: test
