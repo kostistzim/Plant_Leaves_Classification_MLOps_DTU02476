@@ -6,7 +6,6 @@ import kagglehub
 import numpy as np
 import torch
 import typer
-from config.logging_config import logger
 from PIL import Image
 from torch.utils.data import Subset
 from torchvision import transforms
