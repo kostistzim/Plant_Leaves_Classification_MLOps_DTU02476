@@ -20,7 +20,7 @@ DATA_PATH = Path("data/processed/")
 LOG_PREFIX = "TRAINING"
 
 
-def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
+def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5, num_workers: int = 1) -> None:
     """
     Takes the CNN model and performs the training process
 
@@ -63,8 +63,8 @@ def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
     logger.info(f"Train set size: {len(train_set)}")
     logger.info(f"Validation set size: {len(validation_set)}")
 
-    train_dataloader = DataLoader(dataset=train_set, batch_size=batch_size, num_workers=4)
-    val_dataloader = DataLoader(dataset=validation_set, batch_size=batch_size, num_workers=4)
+    train_dataloader = DataLoader(dataset=train_set, batch_size=batch_size, num_workers=num_workers)
+    val_dataloader = DataLoader(dataset=validation_set, batch_size=batch_size, num_workers=num_workers)
 
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
