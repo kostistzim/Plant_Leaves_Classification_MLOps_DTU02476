@@ -190,4 +190,4 @@ outputs/
 wandb/
 
 # Ignore figures
-reports/figures/
+reports/figures/training_statistics.png

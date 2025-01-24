@@ -356,7 +356,13 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 16 fill here ---
+We used different debugging methods during the implementation of the project. One option was the built-in Python 
+debugger. Our IDEs also provided us with debugging options (VSCode and Pycharm), that we found easier to use than the 
+Python debugger. We also implemented extensive logging in our python files. Our first approach was to add print 
+statements that were shown in the console. Later in the process, we used the loguru library to include logging in .log
+files, which we can better handle in the future in cloud environments with the use of some log manager. In our logging 
+files, we also included a prefix that indicates the operation that generates each log, so we can track the flows that 
+cause any disruptions or bugs.
 
 ## Working in the cloud
 
@@ -397,7 +403,9 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 19 fill here ---
+[Cloud Storage Buckets](figures/cloud_storage_buckets.png)
+
+[Cloud Storage Bucket Data](figures/cloud_storage_bucket_data.png)
 
 ### Question 20
 
@@ -406,7 +414,9 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 20 fill here ---
+[Artifact Registry Repositories](figures/artifact_registry_repositories.png)
+
+[Artifact Registry Docker Images](figures/artifact_registry_nitrogen_repo_details.png)
 
 ### Question 21
 
@@ -415,7 +425,7 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 21 fill here ---
+[Cloud Build History](figures/cloud_build_history.png)
 
 ### Question 22
 
@@ -493,7 +503,17 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 26 fill here ---
+We implemented monitoring of our deployed model. The first step was to add some metrics in our api implementation, 
+using the prometheus-client library. We examine metrics like the latency of each request, the number of total and 
+successful requests, the number of errors we have and a summary of the inputs we have. Then, we sidecar container in 
+our cloud to collect metrics from the container that exposes the /metrics endpoint that we use for our prometheus 
+metrics and created a dashboard with our metrics.
+
+Monitoring can help us address issues that have to do with the performance of our application and notice whether
+specific changes in our implementation have a negative impact on that performance. By setting objectives for the 
+expected behaviour of our server and alarms that notify us whether some endpoint does not meet these goals, we can be
+aware of any potential issues very quickly.
+
 
 ## Overall discussion of project
 
@@ -559,7 +579,26 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 30 fill here ---
+Overall it was an extremely interesting project that posed a few challenges to our team, but we were able to handle 
+sufficiently.
+
+One challenge that we had was the fact that we had to work simultaneously on tasks that were either dependent on one 
+another or had overriding changes in files. We agreed from the beginning on specific practices regarding the way we 
+create branches, commits and PRs and how we merge on main so we can minimise the conflicts. Our work became much easier
+when we added workflows and constraints on Github and formalised that process. It was interesting for us to see how we
+should transition from individual working to cooperating for the implementation of specific tasks or the debugging
+whenever it was necessary for the smoothest progression of the project.
+
+On the technical matters, dvc and data versioning proved to be tough to understand and handle properly, especially 
+because in the beginning the size of our dataset was large enough to delay the process of resolving any issues we had
+with dvc and remote storage. We probably could have resolved these difficulties earlier if we chose to scale up the size 
+of our data after setting up properly our deployment on cloud.
+
+Understanding how cloud works and how all services interconnect and communicate was one of the most challenging aspects
+of the project. It was a bit struggling to find out how set our variables and network so our containers communicate 
+with each other, as well as how we are going to better manage the available credits that we had so we don't run out of
+them. Google cloud had many new concepts for us, like artifact registries and Compute engines so we invested a lot of
+time in grasping all these concepts.
 
 ### Question 31
 
