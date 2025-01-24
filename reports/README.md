@@ -189,11 +189,6 @@ In our project, we used `setuptools` for managing dependencies and packaging. We
 >
 > Answer:
 
-### Question 5
-
-> **We expect that you initialized your project using the cookiecutter template. Explain the overall structure of your**
-> **code. What did you fill out? Did you deviate from the template in some way?**
-
 
 Our project was initialized using the cookiecutter template, which provided a standardized and modular project structure.
 
@@ -293,6 +288,8 @@ Yes, our workflow included creating branches and pull requests to ensure organiz
 > *pipeline*
 >
 > Answer:
+
+
 
 We didn't greatly benefit from DVC in our project, as we didn't have any changes to the training data. DVC would be very beneficial for us, if we had multiple dataset version, for example by collecting additional images from the model running in production. Thanks to DVC we would be able to keep track of the changes to our training datasets to ensure reproducibility of our experiments, if we would decide to re-train the model at a later date.
 
