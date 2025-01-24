@@ -367,8 +367,8 @@ Instead of keeping many different experiment files, we made use of `wandb` loggi
 >
 > Answer:
 
-* In the [first image](figures/wandb_sweep.png), we used a Weights & Biases (wandb) sweep agent to optimize hyperparameters. Our goal was to efficiently determine the best learning rate, batch size, and epochs. We configured a search space and initiated a sweep for 10 trials, utilizing only 33% of our dataset to reduce training time. After finding a successful combination, we proceeded to train our final model.
-* In the [second image](figures/wandb_plots.png) we are tracking the training and validation epoch loss, as well as the training and validation epoch accuracy. The primary purpose of this is to monitor the progress of the training process and evaluate its effectiveness. Additionally, by comparing the training and validation loss/accuracy, we aim to ensure that the model is not **overfitting** to the training data.
+* In the ![first image](figures/wandb_sweep.png), we used a Weights & Biases (wandb) sweep agent to optimize hyperparameters. Our goal was to efficiently determine the best learning rate, batch size, and epochs. We configured a search space and initiated a sweep for 10 trials, utilizing only 33% of our dataset to reduce training time. After finding a successful combination, we proceeded to train our final model.
+* In the ![second image](figures/wandb_plots.png) we are tracking the training and validation epoch loss, as well as the training and validation epoch accuracy. The primary purpose of this is to monitor the progress of the training process and evaluate its effectiveness. Additionally, by comparing the training and validation loss/accuracy, we aim to ensure that the model is not **overfitting** to the training data.
 
 ### Question 15
 
@@ -474,9 +474,9 @@ We actually did not need to use a Compute Engine since we managed all our deploy
 >
 > Answer:
 
-[Cloud Storage Buckets](figures/cloud_storage_buckets.png)
+![Cloud Storage Buckets](figures/cloud_storage_buckets.png)
 
-[Cloud Storage Bucket Data](figures/cloud_storage_bucket_data.png)
+![Cloud Storage Bucket Data](figures/cloud_storage_bucket_data.png)
 
 ### Question 20
 
@@ -485,9 +485,9 @@ We actually did not need to use a Compute Engine since we managed all our deploy
 >
 > Answer:
 
-[Artifact Registry Repositories](figures/artifact_registry_repositories.png)
+![Artifact Registry Repositories](figures/artifact_registry_repositories.png)
 
-[Artifact Registry Docker Images](figures/artifact_registry_nitrogen_repo_details.png)
+![Artifact Registry Docker Images](figures/artifact_registry_nitrogen_repo_details.png)
 
 ### Question 21
 
@@ -496,7 +496,7 @@ We actually did not need to use a Compute Engine since we managed all our deploy
 >
 > Answer:
 
-[Cloud Build History](figures/cloud_build_history.png)
+![Cloud Build History](figures/cloud_build_history.png)
 
 ### Question 22
 
@@ -658,7 +658,7 @@ We did implement a Frontend for our API (with `Streamlit`) but this was also cov
 >
 > Answer:
 
-Find our **MLOps pipeline** [here](figures/MLOps_pipeline.png)
+Find our **MLOps pipeline** ![here](figures/MLOps_pipeline.png)
 
 ### Question 30
 
