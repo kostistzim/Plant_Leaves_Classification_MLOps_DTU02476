@@ -24,7 +24,7 @@ def evaluate(model_checkpoint: str) -> None:
     model = PlantClassifier().to(DEVICE)
     model.load_state_dict(torch.load(model_checkpoint))
 
-    _, _, test_set = load_processed_data()
+    _, test_set, _ = load_processed_data()
 
     logger.info(f"Train set size: {len(test_set)}")
 

@@ -558,11 +558,11 @@ A notable feature of the API is that both the inference and input image processi
 > Answer:
 
 We managed to deploy our API both locally and on the cloud.
-- Locally
-    For deplayment we wrapped our model into application used the `lifespan` function of fastpi. First we used the model.pth format but after some experimentation we ended up using the model.onnx format. For local deployment of the api we used `uvicorn --reload --port 8000 src.plant_leaves.api:app`.
+- ### Locally:
+    For deployment we wrapped our model into application used the `lifespan` function of fastpi. First we used the model.pth format but after some experimentation we ended up using the model.onnx format. For local deployment of the api we used `uvicorn --reload --port 8000 src.plant_leaves.api:app`.
     At first we used a temporary html form in order to upload the images but eventually removed it, one can test the api using `http://127.0.0.1:8000/docs`.
     Finally we made sure that everything could be containerized and run smoothly.
-- Cloud
+- ### Cloud:
     As explained above, we orchestrated the deployment locally with docker compose and on GCP, we made use of Cloud Run services.
 
 ### Question 25
@@ -597,10 +597,10 @@ Local load testing revealed issues like unnecessary ONNX runtime loading in the 
 >
 > Answer:
 
-We implemented monitoring of our deployed model. The first step was to add some metrics in our api implementation,
-using the prometheus-client library. We examine metrics like the latency of each request, the number of total and
+We implemented monitoring of our deployed model. The first step was to add some metrics in our API implementation,
+using the `prometheus-client` library. We examine metrics like the latency of each request, the number of total and
 successful requests, the number of errors we have and a summary of the inputs we have. Then, we sidecar container in
-our cloud to collect metrics from the container that exposes the /metrics endpoint that we use for our prometheus
+our cloud to collect metrics from the container that exposes the `/metrics` endpoint that we use for our prometheus
 metrics and created a dashboard with our metrics.
 
 Monitoring can help us address issues that have to do with the performance of our application and notice whether
@@ -673,7 +673,7 @@ We did implement a Frontend for our API (with `Streamlit`) but this was also cov
 >
 > Answer:
 
-Overall it was an extremely interesting project that posed a few challenges to our team, but we were able to handle
+Overall it was an extremely interesting project that posed a few challenges to our team, but we were able to handle them
 sufficiently.
 
 One challenge that we had was the fact that we had to work simultaneously on tasks that were either dependent on one
@@ -683,7 +683,7 @@ when we added workflows and constraints on Github and formalised that process. I
 should transition from individual working to cooperating for the implementation of specific tasks or the debugging
 whenever it was necessary for the smoothest progression of the project.
 
-On the technical matters, dvc and data versioning proved to be tough to understand and handle properly, especially
+On the technical matters, DVC and data versioning proved to be tough to understand and handle properly, especially
 because in the beginning the size of our dataset was large enough to delay the process of resolving any issues we had
 with dvc and remote storage. We probably could have resolved these difficulties earlier if we chose to scale up the size
 of our data after setting up properly our deployment on cloud.
@@ -692,7 +692,8 @@ Understanding how cloud works and how all services interconnect and communicate 
 of the project. It was a bit struggling to find out how set our variables and network so our containers communicate
 with each other, as well as how we are going to better manage the available credits that we had so we don't run out of
 them. Google cloud had many new concepts for us, like artifact registries and Compute engines so we invested a lot of
-time in grasping all these concepts.
+time in grasping all these concepts. Unfortunately, we did not manage to successfully run our application with Cloud Run
+but we can very confidently say that it would be a matter of time to resolve it since we were able to run it locally.
 
 ### Question 31
 
@@ -710,4 +711,16 @@ time in grasping all these concepts.
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
 
---- question 31 fill here ---
+- Student s242798: Was mainly involved in GCP utilization, docker containerization, contributed in the data script, cookiecutter template, early stage of Github workflows, pre-commit hooks, documentation, CLI (with invoke), data version control and application frontend. Also, conducted research on pretrained model pruning, which was not used as a technique due to no visible advantage (`notebooks/checks.ipynb`).
+
+- Student s242796: Was mainly involved in training and evaluation scripts of the model, GitHub project initiation and permissions, design of our final MLOps pipeline image, pytests/CI and docker containerization. Also, conducted research on extra topics like data drifting which did not seem a feasible task to implement.
+
+- Student s223481: Was mainly involved in API implementation, API testing and load testing (locust), WandB logging and hyperparameter optimization, contributed in data script, CLI (typer), CI tests/artifacts, profiling.
+
+- Student s242816: Was mainly involved as our Git master, training and evaluating the model, docker containerization, logging with loguru, continuous workflows (Github actions and CI pipelines), monitoring with API metrics, cloud deployment debugging.
+
+- Student s246733: Was mainly involved in model implementation, Unit Testing with pytest, designing configuration architecture and working with hydra, coverage reports, Github pages (mkdocs), implemented distributed data loading.
+
+> All members contributed to the code by ⭐⭐⭐**CODING**⭐⭐⭐, group pull-request reviews, general debugging discussions and good faith.
+
+# Thank you for this amazing course, we all appreciate it.
