@@ -656,7 +656,7 @@ We did implement a Frontend for our API (with `Streamlit`) but this was also cov
 >
 > Answer:
 
---- question 29 fill here ---
+Find our **MLOps pipeline** [here](figures/MLOps_pipeline.png)
 
 ### Question 30
 
