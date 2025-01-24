@@ -421,7 +421,7 @@ In our project we developed several docker images, for train, API (backend) and 
 We used different debugging methods during the implementation of the project. One option was the built-in Python
 debugger. Our IDEs also provided us with debugging options (VSCode and Pycharm), that we found easier to use than the
 Python debugger. We also implemented extensive logging in our python files. Our first approach was to add print
-statements that were shown in the console. Later in the process, we used the loguru library to include logging in .log
+statements that were shown in the console. Later in the process, we used the `loguru` library to include logging in `.log`
 files, which we can better handle in the future in cloud environments with the use of some log manager. In our logging
 files, we also included a prefix that indicates the operation that generates each log, so we can track the flows that
 cause any disruptions or bugs.
