@@ -720,6 +720,6 @@ but we can very confidently say that it would be a matter of time to resolve it 
 
 - Student s246733: Was mainly involved in model implementation, Unit Testing with pytest, designing configuration architecture and working with hydra, coverage reports, Github pages (mkdocs), implemented distributed data loading.
 
-> All members contributed to the code by ⭐⭐⭐**CODING**⭐⭐⭐, group pull-request reviews, general debugging discussions and good faith.
+> All members contributed to the code by **CODING**, group pull-request reviews, general debugging discussions and good faith.
 
 # Thank you for this amazing course, we all appreciate it.
