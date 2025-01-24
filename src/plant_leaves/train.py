@@ -12,8 +12,8 @@ from omegaconf.dictconfig import DictConfig
 from torch.utils.data import DataLoader
 
 from plant_leaves import PROJECT_ROOT
-from plant_leaves.data import load_processed_data
 from plant_leaves.config.logging_config import logger
+from plant_leaves.data import load_processed_data
 from plant_leaves.model import PlantClassifier
 
 load_dotenv()
@@ -72,8 +72,8 @@ def train(cfg: DictConfig) -> None:
     logger.info(f"Validation set size: {len(validation_set)}")
 
     # train_dataloader = DataLoader(dataset=train_set, batch_size=params.batch_size)
-    train_dataloader = DataLoader(dataset=train_set, batch_size=params.batch_size)
-    val_dataloader = DataLoader(dataset=validation_set, batch_size=params.batch_size)
+    train_dataloader = DataLoader(dataset=train_set, batch_size=params.batch_size, num_workers=4)
+    val_dataloader = DataLoader(dataset=validation_set, batch_size=params.batch_size, num_workers=4)
 
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=params.lr)
