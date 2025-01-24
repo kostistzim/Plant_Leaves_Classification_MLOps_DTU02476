@@ -123,6 +123,33 @@ This command trains the model for the project.
 
 `invoke train`
 
+## Deployment
+
+### **Train**:
+#### Local deployment:
+1. Build the train image locally by running: `docker build -f dockerfiles/<your_dockerfile> -t <your_image_name:tag> .` (e.g. `docker build -f dockerfiles/train.dockerfile -t plants/train:v1.0 .`)
+2. Run the container locally: `docker run --name <experiment_name> <your_image_name:tag>` (e.g. `docker run --name train_experiment plants/train:v1.0`)
+#### Google Cloud deployment:
+1. Build the train image on Google Cloud: `gcloud builds submit --config=<your_cloudbuild_config> .` (e.g. `gcloud builds submit --config=configs/cloud/cloudbuild.yaml .`)
+2. Run the container with VertexAI: `gcloud ai custom-jobs create --region=<choose_region> --display-name=<choose_name> --config=<local_config_path>` (e.g. `gcloud ai custom-jobs create --region=europe-west1 --display-name=test-run --config=configs/cloud/vertex_config_cpu.yaml`). This expects a GCP Storage with the name `oxygen-o2` and the data to exist in the path `gcs/oxygen-o2/data/processed`.
+
+### **Application**:
+#### Local deployment:
+- Simply use the docker-compose file by running `docker-compose up`.
+#### Google Cloud deployment:
+1. Build the train images of both frontend and backend on Google Cloud: `gcloud builds submit --config=<your_cloudbuild_config> .` (e.g. `gcloud builds submit --config=configs/cloud/cloudbuild_frontend.yaml .`)
+2. Run the containers from Cloud Run in GCP by navigating to Cloud Run webpage and creating a new service, specifying the latest image builds that were triggered either manually or from Github Actions. We managed to make the frontend and backend communicate by letting the `BACKEND_URI` be an environment variable and setting it upon creation of the frontend in the Cloud Run webpage.
+
+
+## API Overview
+- **`root/` Endpoint**: Serves as a health check to ensure the API is up and running.
+- **`predict/` Endpoint**: Handles POST requests, accepts a user's PNG image as input, and returns a JSON object containing:
+  - `image_label`: The predicted label for the image.
+  - `confidence`: The confidence score of the prediction.
+  - `status_code`: The HTTP response code.
+- **`metrics` Endpoint**: Displays several dev-defined metrics regarding latency, number of calls, hits/misses etc.
+
+
 <!--### 4. Run Tests
 This command runs the tests for the project and generates a coverage report.
 
