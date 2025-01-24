@@ -143,7 +143,7 @@ s242798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 3 fill here ---
+We chose to utilize the PyTorch Image Models (timm) as our third-party framework. It allows us to load pre-trained models that we can use in our project. For our image classification task, we chose to use [timm/efficientnet_b1.ra4_e3600_r240_in1k - Hugging Face](https://huggingface.co/timm/efficientnet_b1.ra4_e3600_r240_in1k). Using a pre-trained model benefits us greatly, as we both save time that would be normaly required to train the model, and we also start with an architecture, that is already tried and tested.
 
 ## Coding environment
 
