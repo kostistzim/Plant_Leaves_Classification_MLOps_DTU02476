@@ -658,7 +658,9 @@ We did implement a Frontend for our API (with `Streamlit`) but this was also cov
 >
 > Answer:
 
-Find our **MLOps pipeline** ![here](figures/MLOps_pipeline.png)
+![**MLOps pipeline**](figures/MLOps_pipeline.png)   
+
+(original image from Nicki Skafte Detlefsen found at his [page](https://skaftenicki.github.io/dtu_mlops/))
 
 ### Question 30
 
