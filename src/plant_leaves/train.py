@@ -72,8 +72,8 @@ def train(cfg: DictConfig) -> None:
     logger.info(f"Validation set size: {len(validation_set)}")
 
     # train_dataloader = DataLoader(dataset=train_set, batch_size=params.batch_size)
-    train_dataloader = DataLoader(dataset=train_set, batch_size=params.batch_size, num_workers=4)
-    val_dataloader = DataLoader(dataset=validation_set, batch_size=params.batch_size, num_workers=4)
+    train_dataloader = DataLoader(dataset=train_set, batch_size=params.batch_size, num_workers=params.num_workers)
+    val_dataloader = DataLoader(dataset=validation_set, batch_size=params.batch_size, num_workers=params.num_workers)
 
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=params.lr)
