@@ -63,8 +63,8 @@ def train(lr: float = 0.001, batch_size: int = 32, epochs: int = 5) -> None:
     logger.info(f"Train set size: {len(train_set)}")
     logger.info(f"Validation set size: {len(validation_set)}")
 
-    train_dataloader = DataLoader(dataset=train_set, batch_size=batch_size)
-    val_dataloader = DataLoader(dataset=validation_set, batch_size=batch_size)
+    train_dataloader = DataLoader(dataset=train_set, batch_size=batch_size, num_workers=4)
+    val_dataloader = DataLoader(dataset=validation_set, batch_size=batch_size, num_workers=4)
 
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
