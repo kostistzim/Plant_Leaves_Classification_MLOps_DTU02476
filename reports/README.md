@@ -76,7 +76,7 @@ will check the repositories and the code to verify your answers.
 * [✅] Write unit tests related to model construction and or model training (M16)
 * [✅] Calculate the code coverage (M16)
 * [✅] Get some continuous integration running on the GitHub repository (M17)
-* [ ] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
+* [✅] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
 * [✅] Add a linting step to your continuous integration (M17)
 * [✅] Add pre-commit hooks to your version control setup (M18)
 * [✅] Add a continues workflow that triggers when data changes (M19)
@@ -100,13 +100,13 @@ will check the repositories and the code to verify your answers.
 * [ ] Create one or more alert systems in GCP to alert you if your app is not behaving correctly (M28)
 * [ ] If applicable, optimize the performance of your data loading using distributed data loading (M29)
 * [ ] If applicable, optimize the performance of your training pipeline by using distributed training (M30)
-* [ ] Play around with quantization, compilation and pruning for you trained models to increase inference speed (M31)
+* [✅] Play around with quantization, compilation and pruning for you trained models to increase inference speed (M31)
 
 ### Extra
 
 * [✅] Write some documentation for your application (M32)
 * [✅] Publish the documentation to GitHub Pages (M32)
-* [ ] Revisit your initial project description. Did the project turn out as you wanted?
+* [✅] Revisit your initial project description. Did the project turn out as you wanted?
 * [✅] Create an architectural diagram over your MLOps pipeline
 * [✅] Make sure all group members have an understanding about all parts of the project
 * [✅] Uploaded all your code to GitHub
@@ -532,9 +532,9 @@ We managed to train our model with Vertex AI. As mentioned above, the steps we f
 >
 > Answer:
 
-We successfully developed an API for our model using FastAPI. The API exposes two endpoints: `root/` and `predict/` under the `api.py`. 
+We successfully developed an API for our model using FastAPI. The API exposes two endpoints: `root/` and `predict/` under the `api.py`.
 
-- **`root/` Endpoint**: Serves as a health check to ensure the API is up and running.  
+- **`root/` Endpoint**: Serves as a health check to ensure the API is up and running.
 - **`predict/` Endpoint**: Handles POST requests, accepts a user's PNG image as input, and returns a JSON object containing:
   - `image_label`: The predicted label for the image.
   - `confidence`: The confidence score of the prediction.
@@ -558,7 +558,7 @@ A notable feature of the API is that both the inference and input image processi
 > Answer:
 
 We managed to deploy our API both locally and on the cloud.
-- Locally  
+- Locally
     For deplayment we wrapped our model into application used the `lifespan` function of fastpi. First we used the model.pth format but after some experimentation we ended up using the model.onnx format. For local deployment of the api we used `uvicorn --reload --port 8000 src.plant_leaves.api:app`.
     At first we used a temporary html form in order to upload the images but eventually removed it, one can test the api using `http://127.0.0.1:8000/docs`.
     Finally we made sure that everything could be containerized and run smoothly.
@@ -578,10 +578,10 @@ We managed to deploy our API both locally and on the cloud.
 >
 > Answer:
 
-For integration testing, we used `mypy` and created two tests targeting the `root/` and `predict/` endpoints. For the `predict/` endpoint, we used actual data to ensure the model could process images for both labels correctly.  
-For load testing we used `locust` and initially testied our local deployment both via the browser and via cli too, using `locust -f tests/performancetests/locustfile.py --headless --users 100 --spawn-rate 25 --run-time 30s --host=http://localhost:8000 --csv=reports/locust_results/local`.  
-Similary one can load test our cloud deployment by changing the host i.e. `locust -f tests/performancetests/locustfile.py --headless --users 100 --spawn-rate 25 --run-time 30s --host= TODO --csv=reports/locust_results/cloud`.  
-A similar load testing command was added in our CI.  
+For integration testing, we used `mypy` and created two tests targeting the `root/` and `predict/` endpoints. For the `predict/` endpoint, we used actual data to ensure the model could process images for both labels correctly.
+For load testing we used `locust` and initially testied our local deployment both via the browser and via cli too, using `locust -f tests/performancetests/locustfile.py --headless --users 100 --spawn-rate 25 --run-time 30s --host=http://localhost:8000 --csv=reports/locust_results/local`.
+Similary one can load test our cloud deployment by changing the host i.e. `locust -f tests/performancetests/locustfile.py --headless --users 100 --spawn-rate 25 --run-time 30s --host= TODO --csv=reports/locust_results/cloud`.
+A similar load testing command was added in our CI.
 Local load testing revealed issues like unnecessary ONNX runtime loading in the predict endpoint, which we fixed. While average response time was ~500ms for a single user, it spiked drastically with 100 concurrent users (avg 9000ms), [exposing bottlenecks](locust_results/local_stats.csv) that require further optimization.
 
 ### Question 26
