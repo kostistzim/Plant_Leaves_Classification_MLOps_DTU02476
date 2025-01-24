@@ -163,7 +163,17 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 4 fill here ---
+In our project, we used `setuptools` for managing dependencies and packaging. We also utilized a `pyproject.toml` file in compliance with PEP 621, which defines the build system requirements for Python projects. To ensure reproducibility and fast onboarding on our team, new team members should go through the following steps:
+1. Clone the project repository
+`git clone https://github.com/kostistzim/Plant_Leaves_Classification_MLOps_DTU02476.git`
+2. Create a dedicated python environment. Note: It is already tested with conda and python=3.11. This assumes a conda installation and conda command to be in PATH.
+`conda create --name myenv python=3.11`
+3. Activate the environment
+4. Run `pip install invoke==2.2.0`
+5. Install dependencies with **`invoke`** by running:
+* `invoke requirements`
+* `invoke dev-requirements` (for development)
+6. Install pre-commit hooks `invoke pre-commit`
 
 ### Question 5
 
@@ -179,7 +189,33 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 5 fill here ---
+### Question 5
+
+> **We expect that you initialized your project using the cookiecutter template. Explain the overall structure of your**
+> **code. What did you fill out? Did you deviate from the template in some way?**
+
+
+Our project was initialized using the cookiecutter template, which provided a standardized and modular project structure.
+
+- **`.github/`**: Contains GitHub Actions for CI/CD (e.g., `tests.yaml`) and dependabot configuration.
+- **`configs/`**: Configuration files for hyperparameters and paths.
+- **`data/`**: Organized into `raw` (original data) and `processed` (preprocessed data).
+- **`dockerfiles/`**: Separate Dockerfiles for API (`api.Dockerfile`) and training (`train.Dockerfile`).
+- **`docs/`**: Project documentation using MkDocs (e.g., `mkdocs.yml`).
+- **`models/`**: Stores trained models for reuse.
+- **`notebooks/`**: Jupyter notebooks for exploratory data analysis (EDA).
+- **`reports/`**: Reports and visualizations (e.g., `figures/` for plots).
+- **`src/`**: Main source code:
+  - `data.py` (data handling), `train.py` (training pipeline), `evaluate.py` (evaluation), and `api.py` (API endpoints).
+- **`tests/`**: Unit tests for API, data, and models.
+- Additional files include `.gitignore`, `pyproject.toml`, and `tasks.py` for automation, metadata, and version control. \\
+
+While the cookiecutter template provided a solid foundation, we made some customizations:
+- **Docker Integration**: Added multiple Dockerfiles (`api.Dockerfile` and `train.Dockerfile`) to separate the training process and API deployment.
+- **Custom Tasks**: Expanded the `tasks.py` script to automate environment setup, dependency installation, and running pre-commit hooks using `invoke`.
+- **Enhanced Documentation**: Integrated MkDocs for dynamic and well-organized project documentation.
+- **Report Directory**: Added a dedicated `reports/` folder for generated plots and final project results, using **wandb**
+
 
 ### Question 6
 
@@ -194,7 +230,7 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 6 fill here ---
+We used `ruff` for linting and formatting. We also used `mypy` for typing and `mkdocs` in combination with our `docstrings` for documentation. These concepts are important in larger projects because they facilitate a standardized way of code structure, reduce technical debt, improve collaboration among teams and makes our lives easier.
 
 ## Version control
 
@@ -213,7 +249,7 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 7 fill here ---
+We have implemented 5 unit tests in total. We mostly focused on critical parts of our code which always produce a consistent output. In data we tested the functions responsible for processing the raw data, and functions responsible for loading processed data into torch dataloaders. Instead of running these tests on the whole dataset, we made a significantly pruned variant of the data, that we included alongside the tests. For model, we tested that it produces outputs of the expected shape for multiple valid inputs. We did this for both the training forward pass, as well as under model's evaluation mode, since the model's layers might behave differently. We also tried to implement a simple http check of the availability of our kaggle dataset, but it seems to be blocked on kaggle's side.
 
 ### Question 8
 
@@ -228,11 +264,11 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 8 fill here ---
+The total code coverage of our code is 80% out of the source code we decided to test. Even if the code coverage is close to, or around 100%, we would not trust it to be error free. Code coverage only signifies the amount of code that is used by tests. Code coverage does not guarantee handling of all possible edge cases, validity of output, or the detection of critical bugs leading to unexpected behaviour. While it is generally better to strive for higher code coverage percentage, It can sometimes lead to "does-not-throw" tests, where the code is simply called without any additional checks to the validity of it's output.
 
 ### Question 9
 
-> **Did you workflow include using branches and pull requests? If yes, explain how. If not, explain how branches and**
+> **Did your workflow include using branches and pull requests? If yes, explain how. If not, explain how branches and**
 > **pull request can help improve version control.**
 >
 > Recommended answer length: 100-200 words.
@@ -243,7 +279,7 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 9 fill here ---
+Yes, our workflow included creating branches and pull requests to ensure organized and collaborative development. The main branch was kept stable and production-ready, while separate feature branches were used for developing new features, bug fixes, or experiments. In our group, each member had a branch that they worked on in addition to the main branch. Pull requests were used to merge changes into the main branch. Each pull request underwent a thorough peer review to ensure keeping everyone in the same page. Automated testing was triggered via GitHub Actions to validate functionality and detect any issues. Branches and pull requests are essential for managing larger projects as they allow isolated development, enforce robustness through reviews and testing, and improve traceability and collaboration. This ensures a stable and well-organized codebase in multi-developer environments.
 
 ### Question 10
 
@@ -262,7 +298,7 @@ s2424798, s242796, s242816, s223481, s246733
 
 ### Question 11
 
-> **Discuss you continuous integration setup. What kind of continuous integration are you running (unittesting,**
+> **Discuss your continuous integration setup. What kind of continuous integration are you running (unittesting,**
 > **linting, etc.)? Do you test multiple operating systems, Python  version etc. Do you make use of caching? Feel free**
 > **to insert a link to one of your GitHub actions workflow.**
 >
@@ -275,7 +311,15 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 11 fill here ---
+Our continuous integration is organized in multiple files. Our main workflow is located in tests.yaml file. First, we setup the environment, including a pre-trained model along with the necessary credentials for google cloud. Then we run our unit tests using pytest. Along with our unit tests, we also generate a coverage report. We also run our performance and integration tests, testing the functionality of our api. We run these tests on multiple python versions, as well as multiple operating systems. This ensures robustness on multiple possible running environments. Once the tests pass, we build the project and submit it to google cloud. This workflow triggers on any push, or pull-request to the main branch.
+
+To take care of our data, cml.yaml automatically pulls data from dvc upon changes to it's folder on the main branch.
+
+Additionally, we also build and deploy our documentation to github pages. To do so, we have created another github workflow file docs.yaml. It automatically generates the documentation from our code and pushes it into a separate branch in our repository, which is then used by github pages. It can be accessed on this [url](https://kostistzim.github.io/Plant_Leaves_Classification_MLOps_DTU02476/)
+
+In our github workflows, we utilize caching to setup our python installations more efficiently
+
+An example of a triggered workflow can be seen [here](https://github.com/kostistzim/Plant_Leaves_Classification_MLOps_DTU02476/actions/workflows/tests.yaml)
 
 ## Running code and tracking experiments
 
@@ -294,7 +338,7 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 12 fill here ---
+We used `hydra` to read from configuration files in a folder structure so that we could easily change between experiments by simply pointing to a specific configuration file from `default_config.yaml`. Thus, this would only require changing hyperparameters in the experiment configuration files (e.g. `exp1.yaml`) and reference the name of this file in `default_config.yaml`. Simply then, running `invoke train` would use the specified configuration.
 
 ### Question 13
 
@@ -309,7 +353,7 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 13 fill here ---
+Instead of keeping many different experiment files, we made use of `wandb` logging and `random_state`. This means that model's parameters are initialized in a standard way, dropout always omits the same weights and potential data shuffling is also fixed. Then, we can view all of our experiments with information about our hyperparameters on this [link](https://wandb.ai/xhino1997-danmarks-tekniske-universitet-dtu/plant_leaf_classification?nw=nwuserxhino1997)
 
 ### Question 14
 
@@ -341,7 +385,24 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
---- question 15 fill here ---
+In our project we developed several docker images, for train, API (backend) and frontend of our final application:
+
+> First make sure to have docker installed and confirm installation by running `docker -h`.
+
+* **Train**:
+* Local deployment:
+1. Build the train image locally by running: `docker build -f dockerfiles/<your_dockerfile> -t <your_image_name:tag> .` (e.g. `docker build -f dockerfiles/train.dockerfile -t plants/train:v1.0 .`)
+2. Run the container locally: `docker run --name <experiment_name> <your_image_name:tag>` (e.g. `docker run --name train_experiment plants/train:v1.0`)
+* Google Cloud deployment:
+1. Build the train image on Google Cloud: `gcloud builds submit --config=<your_cloudbuild_config> .` (e.g. `gcloud builds submit --config=configs/cloud/cloudbuild.yaml .`)
+2. Run the container with VertexAI: `gcloud ai custom-jobs create --region=<choose_region> --display-name=<choose_name> --config=<local_config_path>` (e.g. `gcloud ai custom-jobs create --region=europe-west1 --display-name=test-run --config=configs/cloud/vertex_config_cpu.yaml`). This expects a GCP Storage with the name `oxygen-o2` and the data to exist in the path `gcs/oxygen-o2/data/processed`.
+
+* **Application**:
+* Local deployment:
+- Simply use the docker-compose file by running `docker-compose up`.
+* Google Cloud deployment:
+1. Build the train images of both frontend and backend on Google Cloud: `gcloud builds submit --config=<your_cloudbuild_config> .` (e.g. `gcloud builds submit --config=configs/cloud/cloudbuild_frontend.yaml .`)
+2. Run the containers from Cloud Run in GCP by navigating to Cloud Run webpage and creating a new service, specifying the latest image builds that were triggered either manually or from Github Actions. We managed to make the frontend and backend communicate by letting the `BACKEND_URI` be an environment variable and setting it upon creation of the frontend in the Cloud Run webpage.
 
 ### Question 16
 
@@ -356,12 +417,12 @@ s2424798, s242796, s242816, s223481, s246733
 >
 > Answer:
 
-We used different debugging methods during the implementation of the project. One option was the built-in Python 
-debugger. Our IDEs also provided us with debugging options (VSCode and Pycharm), that we found easier to use than the 
-Python debugger. We also implemented extensive logging in our python files. Our first approach was to add print 
+We used different debugging methods during the implementation of the project. One option was the built-in Python
+debugger. Our IDEs also provided us with debugging options (VSCode and Pycharm), that we found easier to use than the
+Python debugger. We also implemented extensive logging in our python files. Our first approach was to add print
 statements that were shown in the console. Later in the process, we used the loguru library to include logging in .log
-files, which we can better handle in the future in cloud environments with the use of some log manager. In our logging 
-files, we also included a prefix that indicates the operation that generates each log, so we can track the flows that 
+files, which we can better handle in the future in cloud environments with the use of some log manager. In our logging
+files, we also included a prefix that indicates the operation that generates each log, so we can track the flows that
 cause any disruptions or bugs.
 
 ## Working in the cloud
@@ -379,7 +440,17 @@ cause any disruptions or bugs.
 >
 > Answer:
 
---- question 17 fill here ---
+List of services used with their descriptions:
+- Vertex AI API: `aiplatform.googleapis.com` | This service let us utilize Vertex AI to train our model making sure it is a scalable process.
+- Artifact Registry API: `artifactregistry.googleapis.com` | This service allows storing, managing, and securing container images, packages, and other artifacts in a scalable repository.
+- Cloud Build API: `cloudbuild.googleapis.com` | This service enables building and deploying applications using fully managed continuous integration and delivery (CI/CD) pipelines.
+- API Gateway API: `apigateway.googleapis.com` | This service enables the creation, configuration, and management of API gateways to expose and secure backend services.
+- Service Management API: `servicemanagement.googleapis.com` | This service manages APIs and services, including enabling, disabling, and configuring them in your Google Cloud project.
+- Service Control API: `servicecontrol.googleapis.com` | This service provides runtime control and monitoring for APIs and services, such as access control, quota management, and telemetry reporting.
+- Secret Manager API: `secretmanager.googleapis.com` | This service allows securely storing, managing, and accessing sensitive information such as API keys, passwords, and certificates.
+- Cloud Logging API: `logging.googleapis.com` | This service enables storage, search, analysis, and alerting on log data from Google Cloud resources and applications.
+- Cloud Monitoring API: `monitoring.googleapis.com` | This service provides visibility into the performance, uptime, and health of applications and infrastructure through metrics, dashboards, and alerts.
+- Cloud Run Admin API: `run.googleapis.com` | This service enables the management and deployment of containerized applications on a fully managed serverless platform.
 
 ### Question 18
 
@@ -394,7 +465,7 @@ cause any disruptions or bugs.
 >
 > Answer:
 
---- question 18 fill here ---
+We actually did not need to use a Compute Engine since we managed all our deployments with serverless services as mentioned above (i.e. Cloud Run, Vertex AI).
 
 ### Question 19
 
@@ -440,7 +511,10 @@ cause any disruptions or bugs.
 >
 > Answer:
 
---- question 22 fill here ---
+We managed to train our model with Vertex AI. As mentioned above, the steps we followed were:
+
+1. Build the train image on Google Cloud: `gcloud builds submit --config=<your_cloudbuild_config> .` (e.g. `gcloud builds submit --config=configs/cloud/cloudbuild.yaml .`)
+2. Run the container with VertexAI: `gcloud ai custom-jobs create --region=<choose_region> --display-name=<choose_name> --config=<local_config_path>` (e.g. `gcloud ai custom-jobs create --region=europe-west1 --display-name=test-run --config=configs/cloud/vertex_config_cpu.yaml`). This expects a GCP Storage with the name `oxygen-o2` and the data to exist in the path `gcs/oxygen-o2/data/processed`.
 
 ## Deployment
 
@@ -473,7 +547,7 @@ cause any disruptions or bugs.
 >
 > Answer:
 
---- question 24 fill here ---
+We managed to deploy it both locally and on Google Cloud with Cloud Run. As explained above, we orchestrated the deployment locally with docker compose and on GCP, we made use of Cloud Run services.
 
 ### Question 25
 
@@ -503,14 +577,14 @@ cause any disruptions or bugs.
 >
 > Answer:
 
-We implemented monitoring of our deployed model. The first step was to add some metrics in our api implementation, 
-using the prometheus-client library. We examine metrics like the latency of each request, the number of total and 
-successful requests, the number of errors we have and a summary of the inputs we have. Then, we sidecar container in 
-our cloud to collect metrics from the container that exposes the /metrics endpoint that we use for our prometheus 
+We implemented monitoring of our deployed model. The first step was to add some metrics in our api implementation,
+using the prometheus-client library. We examine metrics like the latency of each request, the number of total and
+successful requests, the number of errors we have and a summary of the inputs we have. Then, we sidecar container in
+our cloud to collect metrics from the container that exposes the /metrics endpoint that we use for our prometheus
 metrics and created a dashboard with our metrics.
 
 Monitoring can help us address issues that have to do with the performance of our application and notice whether
-specific changes in our implementation have a negative impact on that performance. By setting objectives for the 
+specific changes in our implementation have a negative impact on that performance. By setting objectives for the
 expected behaviour of our server and alarms that notify us whether some endpoint does not meet these goals, we can be
 aware of any potential issues very quickly.
 
@@ -532,7 +606,7 @@ aware of any potential issues very quickly.
 >
 > Answer:
 
---- question 27 fill here ---
+Mainly, only one group member's account utilised the cloud services, since it was easier to authenticate once and was more familiar to navigate on GCP webpage. As of costs, we spent a little above the $50 voucher, so around $30. Most of this (around $20) was used for a Compute Engine VM that was created in case we need it but was forgotten to be shut down. The rest (around $10), was used for Cloud Storage, Cloud Artifact Registry and Vertex AI services. If we disregard the forgotten Compute Engine instance, the most expensive service was Vertex AI (around $5), followed by Cloud Storage (around $3.5) and Artifact Registry (around $1.5).
 
 ### Question 28
 
@@ -548,7 +622,7 @@ aware of any potential issues very quickly.
 >
 > Answer:
 
---- question 28 fill here ---
+We did implement a Frontend for our API (with `Streamlit`) but this was also covered in the course material. We also made use of `WandB`'s hyperparameter optimization algorithms, called sweep agents, which basically is a substitute for `Optuna` that was covered in the lectures. Also, we used `docker-compose` to orchestrate the deployment of our application locally.
 
 ### Question 29
 
@@ -579,23 +653,23 @@ aware of any potential issues very quickly.
 >
 > Answer:
 
-Overall it was an extremely interesting project that posed a few challenges to our team, but we were able to handle 
+Overall it was an extremely interesting project that posed a few challenges to our team, but we were able to handle
 sufficiently.
 
-One challenge that we had was the fact that we had to work simultaneously on tasks that were either dependent on one 
-another or had overriding changes in files. We agreed from the beginning on specific practices regarding the way we 
+One challenge that we had was the fact that we had to work simultaneously on tasks that were either dependent on one
+another or had overriding changes in files. We agreed from the beginning on specific practices regarding the way we
 create branches, commits and PRs and how we merge on main so we can minimise the conflicts. Our work became much easier
 when we added workflows and constraints on Github and formalised that process. It was interesting for us to see how we
 should transition from individual working to cooperating for the implementation of specific tasks or the debugging
 whenever it was necessary for the smoothest progression of the project.
 
-On the technical matters, dvc and data versioning proved to be tough to understand and handle properly, especially 
+On the technical matters, dvc and data versioning proved to be tough to understand and handle properly, especially
 because in the beginning the size of our dataset was large enough to delay the process of resolving any issues we had
-with dvc and remote storage. We probably could have resolved these difficulties earlier if we chose to scale up the size 
+with dvc and remote storage. We probably could have resolved these difficulties earlier if we chose to scale up the size
 of our data after setting up properly our deployment on cloud.
 
 Understanding how cloud works and how all services interconnect and communicate was one of the most challenging aspects
-of the project. It was a bit struggling to find out how set our variables and network so our containers communicate 
+of the project. It was a bit struggling to find out how set our variables and network so our containers communicate
 with each other, as well as how we are going to better manage the available credits that we had so we don't run out of
 them. Google cloud had many new concepts for us, like artifact registries and Compute engines so we invested a lot of
 time in grasping all these concepts.
