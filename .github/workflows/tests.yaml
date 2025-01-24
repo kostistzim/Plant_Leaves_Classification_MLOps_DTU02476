@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.operating-system }}
     strategy:
       matrix:
-        operating-system: ["macos-latest"]
+        operating-system: ["macos-latest", "ubuntu-latest"]
         python-version: ["3.12", "3.11"]
 
     steps:
@@ -65,7 +65,7 @@ jobs:
           locust -f tests/performancetests/locustfile.py --headless --users 10 --spawn-rate 1 --run-time 10s --host=http://localhost:8000 --csv=reports/locust_results/
           echo "Stopping uvicorn..."
           kill $UVICORN_PID
-  
+
       - name: Upload Test Artifacts
         uses: actions/upload-artifact@v4
         with:
