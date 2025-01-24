@@ -370,7 +370,8 @@ Instead of keeping many different experiment files, we made use of `wandb` loggi
 >
 > Answer:
 
---- question 14 fill here ---
+* In the [first image](figures/wandb_sweep.png), we used a Weights & Biases (wandb) sweep agent to optimize hyperparameters. Our goal was to efficiently determine the best learning rate, batch size, and epochs. We configured a search space and initiated a sweep for 10 trials, utilizing only 33% of our dataset to reduce training time. After finding a successful combination, we proceeded to train our final model.
+* In the [second image](figures/wandb_plots.png) we are tracking the training and validation epoch loss, as well as the training and validation epoch accuracy. The primary purpose of this is to monitor the progress of the training process and evaluate its effectiveness. Additionally, by comparing the training and validation loss/accuracy, we aim to ensure that the model is not **overfitting** to the training data.
 
 ### Question 15
 
@@ -531,7 +532,16 @@ We managed to train our model with Vertex AI. As mentioned above, the steps we f
 >
 > Answer:
 
---- question 23 fill here ---
+We successfully developed an API for our model using FastAPI. The API exposes two endpoints: `root/` and `predict/` under the `api.py`. 
+
+- **`root/` Endpoint**: Serves as a health check to ensure the API is up and running.  
+- **`predict/` Endpoint**: Handles POST requests, accepts a user's PNG image as input, and returns a JSON object containing:
+  - `image_label`: The predicted label for the image.
+  - `confidence`: The confidence score of the prediction.
+  - `status_code`: The HTTP response code.
+- **`metrics` Endpoint**: Displays several dev-defined metrics regarding latency, number of calls, hits/misses etc.
+
+A notable feature of the API is that both the inference and input image processing functions are implemented with `async-await`. This ensures that the application remains responsive and does not get "stuck" while preparing a response for the client. And each response contains a `status_code` so that debugging becomes easier.
 
 ### Question 24
 
@@ -547,7 +557,13 @@ We managed to train our model with Vertex AI. As mentioned above, the steps we f
 >
 > Answer:
 
-We managed to deploy it both locally and on Google Cloud with Cloud Run. As explained above, we orchestrated the deployment locally with docker compose and on GCP, we made use of Cloud Run services.
+We managed to deploy our API both locally and on the cloud.
+- Locally  
+    For deplayment we wrapped our model into application used the `lifespan` function of fastpi. First we used the model.pth format but after some experimentation we ended up using the model.onnx format. For local deployment of the api we used `uvicorn --reload --port 8000 src.plant_leaves.api:app`.
+    At first we used a temporary html form in order to upload the images but eventually removed it, one can test the api using `http://127.0.0.1:8000/docs`.
+    Finally we made sure that everything could be containerized and run smoothly.
+- Cloud
+    As explained above, we orchestrated the deployment locally with docker compose and on GCP, we made use of Cloud Run services.
 
 ### Question 25
 
@@ -562,7 +578,11 @@ We managed to deploy it both locally and on Google Cloud with Cloud Run. As expl
 >
 > Answer:
 
---- question 25 fill here ---
+For integration testing, we used `mypy` and created two tests targeting the `root/` and `predict/` endpoints. For the `predict/` endpoint, we used actual data to ensure the model could process images for both labels correctly.  
+For load testing we used `locust` and initially testied our local deployment both via the browser and via cli too, using `locust -f tests/performancetests/locustfile.py --headless --users 100 --spawn-rate 25 --run-time 30s --host=http://localhost:8000 --csv=reports/locust_results/local`.  
+Similary one can load test our cloud deployment by changing the host i.e. `locust -f tests/performancetests/locustfile.py --headless --users 100 --spawn-rate 25 --run-time 30s --host= TODO --csv=reports/locust_results/cloud`.  
+A similar load testing command was added in our CI.  
+Local load testing revealed issues like unnecessary ONNX runtime loading in the predict endpoint, which we fixed. While average response time was ~500ms for a single user, it spiked drastically with 100 concurrent users (avg 9000ms), [exposing bottlenecks](locust_results/local_stats.csv) that require further optimization.
 
 ### Question 26
 
