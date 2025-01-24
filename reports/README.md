@@ -367,8 +367,8 @@ Instead of keeping many different experiment files, we made use of `wandb` loggi
 >
 > Answer:
 
-* In the ![first image](figures/wandb_sweep.png), we used a Weights & Biases (wandb) sweep agent to optimize hyperparameters. Our goal was to efficiently determine the best learning rate, batch size, and epochs. We configured a search space and initiated a sweep for 10 trials, utilizing only 33% of our dataset to reduce training time. After finding a successful combination, we proceeded to train our final model.
-* In the ![second image](figures/wandb_plots.png) we are tracking the training and validation epoch loss, as well as the training and validation epoch accuracy. The primary purpose of this is to monitor the progress of the training process and evaluate its effectiveness. Additionally, by comparing the training and validation loss/accuracy, we aim to ensure that the model is not **overfitting** to the training data.
+* ![first image](figures/wandb_sweep.png) here, we used a Weights & Biases (wandb) sweep agent to optimize hyperparameters. Our goal was to efficiently determine the best learning rate, batch size, and epochs. We configured a search space and initiated a sweep for 10 trials, utilizing only 33% of our dataset to reduce training time. After finding a successful combination, we proceeded to train our final model.
+* ![second image](figures/wandb_plots.png) here, we are tracking the training and validation epoch loss, as well as the training and validation epoch accuracy. The primary purpose of this is to monitor the progress of the training process and evaluate its effectiveness. Additionally, by comparing the training and validation loss/accuracy, we aim to ensure that the model is not **overfitting** to the training data.
 
 ### Question 15
 
